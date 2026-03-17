@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'polls',
+    'scholarships',
 ]
 
 MIDDLEWARE = [
@@ -116,3 +117,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = 'home'
+LOGIN_REDIRECT_URL = 'scholarships:student_form'
+
+PRELOAD_ML_MODELS = False

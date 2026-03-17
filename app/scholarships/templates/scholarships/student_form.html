@@ -1,0 +1,226 @@
+{% extends "scholarships/base_scholarship.html" %}
+
+{% block title %}Apply for Scholarship{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow-lg rounded-2xl p-8">
+    <h2 class="text-xl font-bold text-gray-800 mb-1">Student Profile Form</h2>
+    <p class="text-sm text-gray-500 mb-6">Fill in your details to receive scholarship recommendations.</p>
+
+    {% if form.errors %}
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <p class="text-red-700 font-semibold text-sm">Please correct the errors below:</p>
+        {% for field, errors in form.errors.items %}
+        <p class="text-red-600 text-sm mt-1">{{ field }}: {{ errors.0 }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" class="space-y-8">
+        {% csrf_token %}
+
+        <!-- Section 1: Personal Information -->
+        <fieldset>
+            <legend class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Personal Information</legend>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="id_first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                    <input type="text" name="first_name" id="id_first_name" value="{{ form.first_name.value|default_if_none:'' }}"
+                        class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label for="id_last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                    <input type="text" name="last_name" id="id_last_name" value="{{ form.last_name.value|default_if_none:'' }}"
+                        class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label for="id_age" class="block text-sm font-medium text-gray-700">Age</label>
+                    <input type="number" name="age" id="id_age" min="15" max="65" value="{{ form.age.value|default_if_none:'' }}"
+                        class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label for="id_sex" class="block text-sm font-medium text-gray-700">Sex</label>
+                    <select name="sex" id="id_sex"
+                        class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">-- Select --</option>
+                        <option value="Male" {% if form.sex.value == "Male" %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if form.sex.value == "Female" %}selected{% endif %}>Female</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="id_civil_status" class="block text-sm font-medium text-gray-700">Civil Status</label>
+                    <select name="civil_status" id="id_civil_status"
+                        class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">-- Select --</option>
+                        <option value="Single" {% if form.civil_status.value == "Single" %}selected{% endif %}>Single</option>
+                        <option value="Married" {% if form.civil_status.value == "Married" %}selected{% endif %}>Married</option>
+                        <option value="Widowed" {% if form.civil_status.value == "Widowed" %}selected{% endif %}>Widowed</option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Section 2: Academic Information -->
+        <fieldset>
+            <legend class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Academic Information</legend>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="id_year_level" class="block text-sm font-medium text-gray-700">Year Level</label>
+                    <select name="year_level" id="id_year_level"
+                        class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">-- Select --</option>
+                        <option value="1" {% if form.year_level.value == 1 or form.year_level.value == "1" %}selected{% endif %}>1st Year</option>
+                        <option value="2" {% if form.year_level.value == 2 or form.year_level.value == "2" %}selected{% endif %}>2nd Year</option>
+                        <option value="3" {% if form.year_level.value == 3 or form.year_level.value == "3" %}selected{% endif %}>3rd Year</option>
+                        <option value="4" {% if form.year_level.value == 4 or form.year_level.value == "4" %}selected{% endif %}>4th Year</option>
+                        <option value="5" {% if form.year_level.value == 5 or form.year_level.value == "5" %}selected{% endif %}>5th Year</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="id_gwa" class="block text-sm font-medium text-gray-700">GWA (1.0 - 5.0)</label>
+                    <input type="number" name="gwa" id="id_gwa" step="0.01" min="1.0" max="5.0"
+                        value="{{ form.gwa.value|default_if_none:'' }}"
+                        class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                    <p class="text-xs text-gray-400 mt-1">1.0 = Highest, 5.0 = Lowest</p>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="id_course_combined" class="block text-sm font-medium text-gray-700">Course</label>
+                    <select name="course_combined" id="id_course_combined"
+                        class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">-- Select Course --</option>
+                        <optgroup label="Agriculture">
+                            <option value="Agriculture|||BS Agriculture" {% if form.course_combined.value == "Agriculture|||BS Agriculture" %}selected{% endif %}>BS Agriculture</option>
+                            <option value="Agriculture|||BS Agricultural Engineering" {% if form.course_combined.value == "Agriculture|||BS Agricultural Engineering" %}selected{% endif %}>BS Agricultural Engineering</option>
+                            <option value="Agriculture|||BS Fisheries" {% if form.course_combined.value == "Agriculture|||BS Fisheries" %}selected{% endif %}>BS Fisheries</option>
+                        </optgroup>
+                        <optgroup label="Business">
+                            <option value="Business|||BS Accountancy" {% if form.course_combined.value == "Business|||BS Accountancy" %}selected{% endif %}>BS Accountancy</option>
+                            <option value="Business|||BS Business Administration" {% if form.course_combined.value == "Business|||BS Business Administration" %}selected{% endif %}>BS Business Administration</option>
+                            <option value="Business|||BS Entrepreneurship" {% if form.course_combined.value == "Business|||BS Entrepreneurship" %}selected{% endif %}>BS Entrepreneurship</option>
+                        </optgroup>
+                        <optgroup label="Coconut-Related">
+                            <option value="Coconut-Related|||BS Agricultural Engineering (Coconut)" {% if form.course_combined.value == "Coconut-Related|||BS Agricultural Engineering (Coconut)" %}selected{% endif %}>BS Agricultural Engineering (Coconut)</option>
+                            <option value="Coconut-Related|||BS Food Technology (Coconut)" {% if form.course_combined.value == "Coconut-Related|||BS Food Technology (Coconut)" %}selected{% endif %}>BS Food Technology (Coconut)</option>
+                        </optgroup>
+                        <optgroup label="Education">
+                            <option value="Education|||Bachelor of Elementary Education" {% if form.course_combined.value == "Education|||Bachelor of Elementary Education" %}selected{% endif %}>Bachelor of Elementary Education</option>
+                            <option value="Education|||Bachelor of Secondary Education" {% if form.course_combined.value == "Education|||Bachelor of Secondary Education" %}selected{% endif %}>Bachelor of Secondary Education</option>
+                            <option value="Education|||BS Education" {% if form.course_combined.value == "Education|||BS Education" %}selected{% endif %}>BS Education</option>
+                        </optgroup>
+                        <optgroup label="Engineering">
+                            <option value="Engineering|||BS Civil Engineering" {% if form.course_combined.value == "Engineering|||BS Civil Engineering" %}selected{% endif %}>BS Civil Engineering</option>
+                            <option value="Engineering|||BS Electrical Engineering" {% if form.course_combined.value == "Engineering|||BS Electrical Engineering" %}selected{% endif %}>BS Electrical Engineering</option>
+                            <option value="Engineering|||BS Mechanical Engineering" {% if form.course_combined.value == "Engineering|||BS Mechanical Engineering" %}selected{% endif %}>BS Mechanical Engineering</option>
+                            <option value="Engineering|||BS Computer Engineering" {% if form.course_combined.value == "Engineering|||BS Computer Engineering" %}selected{% endif %}>BS Computer Engineering</option>
+                            <option value="Engineering|||BS Chemical Engineering" {% if form.course_combined.value == "Engineering|||BS Chemical Engineering" %}selected{% endif %}>BS Chemical Engineering</option>
+                        </optgroup>
+                        <optgroup label="Health Sciences">
+                            <option value="Health Sciences|||BS Nursing" {% if form.course_combined.value == "Health Sciences|||BS Nursing" %}selected{% endif %}>BS Nursing</option>
+                            <option value="Health Sciences|||BS Pharmacy" {% if form.course_combined.value == "Health Sciences|||BS Pharmacy" %}selected{% endif %}>BS Pharmacy</option>
+                            <option value="Health Sciences|||BS Medical Technology" {% if form.course_combined.value == "Health Sciences|||BS Medical Technology" %}selected{% endif %}>BS Medical Technology</option>
+                            <option value="Health Sciences|||BS Physical Therapy" {% if form.course_combined.value == "Health Sciences|||BS Physical Therapy" %}selected{% endif %}>BS Physical Therapy</option>
+                        </optgroup>
+                        <optgroup label="Hospitality">
+                            <option value="Hospitality|||BS Hospitality Management" {% if form.course_combined.value == "Hospitality|||BS Hospitality Management" %}selected{% endif %}>BS Hospitality Management</option>
+                            <option value="Hospitality|||BS Tourism Management" {% if form.course_combined.value == "Hospitality|||BS Tourism Management" %}selected{% endif %}>BS Tourism Management</option>
+                        </optgroup>
+                        <optgroup label="IT/Computing">
+                            <option value="IT/Computing|||BS Information Technology" {% if form.course_combined.value == "IT/Computing|||BS Information Technology" %}selected{% endif %}>BS Information Technology</option>
+                            <option value="IT/Computing|||BS Computer Science" {% if form.course_combined.value == "IT/Computing|||BS Computer Science" %}selected{% endif %}>BS Computer Science</option>
+                            <option value="IT/Computing|||BS Information Systems" {% if form.course_combined.value == "IT/Computing|||BS Information Systems" %}selected{% endif %}>BS Information Systems</option>
+                        </optgroup>
+                        <optgroup label="Science">
+                            <option value="Science|||BS Biology" {% if form.course_combined.value == "Science|||BS Biology" %}selected{% endif %}>BS Biology</option>
+                            <option value="Science|||BS Environmental Science" {% if form.course_combined.value == "Science|||BS Environmental Science" %}selected{% endif %}>BS Environmental Science</option>
+                            <option value="Science|||BS Chemistry" {% if form.course_combined.value == "Science|||BS Chemistry" %}selected{% endif %}>BS Chemistry</option>
+                            <option value="Science|||BS Mathematics" {% if form.course_combined.value == "Science|||BS Mathematics" %}selected{% endif %}>BS Mathematics</option>
+                        </optgroup>
+                        <optgroup label="Social Sciences">
+                            <option value="Social Sciences|||BS Social Work" {% if form.course_combined.value == "Social Sciences|||BS Social Work" %}selected{% endif %}>BS Social Work</option>
+                            <option value="Social Sciences|||BS Psychology" {% if form.course_combined.value == "Social Sciences|||BS Psychology" %}selected{% endif %}>BS Psychology</option>
+                            <option value="Social Sciences|||BA Political Science" {% if form.course_combined.value == "Social Sciences|||BA Political Science" %}selected{% endif %}>BA Political Science</option>
+                        </optgroup>
+                        <optgroup label="Sugarcane-Related">
+                            <option value="Sugarcane-Related|||BS Chemical Engineering (Sugar Processing)" {% if form.course_combined.value == "Sugarcane-Related|||BS Chemical Engineering (Sugar Processing)" %}selected{% endif %}>BS Chemical Engineering (Sugar Processing)</option>
+                            <option value="Sugarcane-Related|||BS Agriculture (Sugar Technology)" {% if form.course_combined.value == "Sugarcane-Related|||BS Agriculture (Sugar Technology)" %}selected{% endif %}>BS Agriculture (Sugar Technology)</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Section 3: Financial Information -->
+        <fieldset>
+            <legend class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Financial Information</legend>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="id_income_range" class="block text-sm font-medium text-gray-700">Family Annual Income</label>
+                    <select name="income_range" id="id_income_range"
+                        class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">-- Select Income Range --</option>
+                        <option value="10000-19999" {% if form.income_range.value == "10000-19999" %}selected{% endif %}>&#8369;10,000 - &#8369;19,999</option>
+                        <option value="20000-29999" {% if form.income_range.value == "20000-29999" %}selected{% endif %}>&#8369;20,000 - &#8369;29,999</option>
+                        <option value="30000-39999" {% if form.income_range.value == "30000-39999" %}selected{% endif %}>&#8369;30,000 - &#8369;39,999</option>
+                        <option value="40000-49999" {% if form.income_range.value == "40000-49999" %}selected{% endif %}>&#8369;40,000 - &#8369;49,999</option>
+                        <option value="50000-59999" {% if form.income_range.value == "50000-59999" %}selected{% endif %}>&#8369;50,000 - &#8369;59,999</option>
+                        <option value="60000-69999" {% if form.income_range.value == "60000-69999" %}selected{% endif %}>&#8369;60,000 - &#8369;69,999</option>
+                        <option value="70000-79999" {% if form.income_range.value == "70000-79999" %}selected{% endif %}>&#8369;70,000 - &#8369;79,999</option>
+                        <option value="80000-89999" {% if form.income_range.value == "80000-89999" %}selected{% endif %}>&#8369;80,000 - &#8369;89,999</option>
+                        <option value="90000-100000" {% if form.income_range.value == "90000-100000" %}selected{% endif %}>&#8369;90,000 - &#8369;100,000</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="id_parents_occupation" class="block text-sm font-medium text-gray-700">Parents' Occupation</label>
+                    <input type="text" name="parents_occupation" id="id_parents_occupation"
+                        value="{{ form.parents_occupation.value|default_if_none:'' }}"
+                        class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required
+                        placeholder="e.g. Farmer, Government Employee">
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Section 4: Additional Information -->
+        <fieldset>
+            <legend class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Additional Information</legend>
+            <p class="text-sm text-gray-500 mb-3">Check all that apply:</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" name="is_4ps_beneficiary" {% if form.is_4ps_beneficiary.value %}checked{% endif %}
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    4Ps Beneficiary
+                </label>
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" name="is_solo_parent_dependent" {% if form.is_solo_parent_dependent.value %}checked{% endif %}
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    Solo Parent Dependent
+                </label>
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" name="is_pwd" {% if form.is_pwd.value %}checked{% endif %}
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    Person with Disability (PWD)
+                </label>
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" name="is_indigenous_people" {% if form.is_indigenous_people.value %}checked{% endif %}
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    Indigenous People
+                </label>
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" name="is_ofw_dependent" {% if form.is_ofw_dependent.value %}checked{% endif %}
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    OFW Dependent
+                </label>
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" name="has_existing_scholarship" {% if form.has_existing_scholarship.value %}checked{% endif %}
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    Has Existing Scholarship
+                </label>
+            </div>
+        </fieldset>
+
+        <button type="submit"
+            class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 text-lg">
+            Get Scholarship Recommendations
+        </button>
+    </form>
+</div>
+{% endblock %}
