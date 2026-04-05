@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up{% endblock %}
+{% block heading %}Sign Up{% endblock %}
+
+{% block content %}
+{% if messages %}
+<div class="mb-4">
+    {% for message in messages %}
+    <p class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">{{ message }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form action="{% url 'signup_submit' %}" method="post" class="space-y-4">
+    {% csrf_token %}
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Username</label>
+        <input type="text" name="username"
+            class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" required>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Password</label>
+        <input type="password" name="password"
+            class="mt-1 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" required>
+    </div>
+
+    <button type="submit"
+        class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700">
+        Create Account
+    </button>
+</form>
+
+<p class="text-center text-sm text-gray-600 mt-4">
+    Already have an account?
+    <a href="{% url 'home' %}" class="text-blue-600 font-semibold hover:underline">
+        Login
+    </a>
+</p>
+{% endblock %}
