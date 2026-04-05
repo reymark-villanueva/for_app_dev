@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scholarship Recommendation System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js" defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          forest: { 50:'#f0f7f0', 100:'#dceedd', 200:'#b9deba', 300:'#8bc58c', 400:'#5fa860', 500:'#3d8f3e', 600:'#2d7030', 700:'#245828', 800:'#1e4522', 900:'#18371b' },
+          sand: { 50:'#fdfbf5', 100:'#faf5e4', 200:'#f3e9c6', 300:'#ebd9a0', 400:'#dfc374', 500:'#d4ac52' },
+          slate2: { 50:'#f5f7f9', 100:'#e8edf2', 200:'#d0dae4', 300:'#abbcc9', 400:'#7e9aaf', 500:'#5d7d94' }
+        },
+        fontFamily: {
+          display: ['"Playfair Display"', 'serif'],
+          body: ['"DM Sans"', 'sans-serif'],
+        }
+      }
+    }
+  }
+</script>
+<style>
+  * { font-family: 'DM Sans', sans-serif; }
+  .font-display { font-family: 'Playfair Display', serif; }
+
+  body { background: #f0f7f0; }
+
+  /* Background blobs */
+  .blob { border-radius: 60% 40% 70% 30% / 50% 60% 40% 70%; }
+
+  /* Page transitions */
+  .page { display: none; animation: fadeSlideIn 0.4s ease; }
+  .page.active { display: block; }
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Card hover */
+  .scholarship-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+  .scholarship-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(30,69,34,0.18); }
+
+  /* Input focus */
+  input:focus, select:focus { outline: none; border-color: #3d8f3e; box-shadow: 0 0 0 3px rgba(61,143,62,0.15); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #dceedd; }
+  ::-webkit-scrollbar-thumb { background: #5fa860; border-radius: 3px; }
+
+  /* Dot pattern */
+  .dot-pattern {
+    background-image: radial-gradient(circle, #3d8f3e 1.5px, transparent 1.5px);
+    background-size: 18px 18px;
+    opacity: 0.25;
+  }
+
+  /* Match score ring */
+  .match-ring { stroke-dasharray: 251; stroke-dashoffset: 251; transition: stroke-dashoffset 1s ease; }
+
+  /* Nav underline active */
+  .nav-active { position: relative; }
+  .nav-active::after { content:''; position:absolute; bottom:-4px; left:0; right:0; height:2px; background:#5fa860; border-radius:1px; }
+
+  /* Checkbox style */
+  .check-item input[type=checkbox] { accent-color: #3d8f3e; width:16px; height:16px; }
+
+  /* Button pulse */
+  .btn-primary { transition: all 0.2s; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(36,88,40,0.3); }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* Search input */
+  .search-wrap input { transition: width 0.3s ease; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ======= LOGIN PAGE ======= -->
+<div id="page-login" class="page active min-h-screen flex items-center justify-center relative overflow-hidden" style="background: linear-gradient(135deg, #1e4522 0%, #3d8f3e 50%, #5fa860 100%);">
+  <!-- Background image overlay -->
+  <div class="absolute inset-0" style="background: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1400&q=80') center/cover; opacity:0.15;"></div>
+  
+  <!-- Decorative dots -->
+  <div class="absolute bottom-12 right-12 w-32 h-32 dot-pattern" style="opacity:0.4;"></div>
+  <div class="absolute top-12 left-12 w-24 h-24 dot-pattern" style="opacity:0.3;"></div>
+
+  <!-- Login card -->
+  <div class="relative z-10 bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md mx-4" style="backdrop-filter: blur(10px);">
+    <!-- Logo area -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style="background: linear-gradient(135deg, #1e4522, #5fa860);">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+      </div>
+      <h1 class="font-display text-3xl font-800 text-forest-800 leading-tight">SCHOLARSHIP</h1>
+      <h2 class="font-display text-2xl font-700 text-forest-600">RECOMMENDATION</h2>
+      <div class="mt-3 h-0.5 w-32 mx-auto rounded" style="background: linear-gradient(to right, #5fa860, #5d7d94);"></div>
+      <p class="mt-3 text-sm text-slate2-500 font-medium tracking-wide">Login to your account</p>
+    </div>
+
+    <div class="space-y-5">
+      <div>
+        <label class="block text-sm font-600 text-forest-700 mb-2">Username</label>
+        <input type="text" id="login-username" placeholder="Enter your username"
+          class="w-full px-4 py-3 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 placeholder-slate2-300 font-body transition-all">
+      </div>
+      <div>
+        <label class="block text-sm font-600 text-forest-700 mb-2">Password</label>
+        <input type="password" id="login-password" placeholder="Enter your password"
+          class="w-full px-4 py-3 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 placeholder-slate2-300 font-body transition-all">
+      </div>
+      <button onclick="loginAndRemovePage()" class="btn-primary w-full py-3.5 rounded-xl text-white font-600 text-base mt-2" style="background: linear-gradient(135deg, #1e4522, #3d8f3e);">
+        Log in
+      </button>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-slate2-400">© 2025 Scholarship Recommendation System</p>
+  </div>
+</div>
+
+
+<!-- ======= HOME PAGE ======= -->
+<div id="page-home" class="page min-h-screen" style="background:#f8fdf8;">
+  <!-- Navbar -->
+  <nav class="sticky top-0 z-50 shadow-md" style="background: linear-gradient(90deg, #1e4522 0%, #2d7030 100%);">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white bg-opacity-20">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+        </div>
+        <div>
+          <p class="text-white font-600 text-sm leading-tight">Scholarship</p>
+          <p class="text-green-300 text-xs">Recommendation System</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-8">
+        <button onclick="goTo('page-home')" class="text-white font-600 nav-active text-sm">Home</button>
+        <button onclick="goTo('page-scholarships')" class="text-green-300 hover:text-white transition font-500 text-sm">Scholarships</button>
+        <button onclick="goTo('page-login')" class="text-green-300 hover:text-white transition font-500 text-sm">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="max-w-6xl mx-auto px-6 py-14 relative">
+    <!-- Decorative blobs -->
+    <div class="absolute top-0 right-0 w-72 h-72 rounded-full opacity-20" style="background: radial-gradient(circle, #ebd9a0, transparent); transform: translate(30%, -20%);"></div>
+    <div class="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-15" style="background: radial-gradient(circle, #5fa860, transparent);"></div>
+    <div class="absolute top-6 right-6 w-28 h-28 dot-pattern"></div>
+
+    <h1 class="font-display text-5xl font-800 text-forest-800 mb-2">Welcome, <span class="text-forest-500">Student!</span></h1>
+    <p class="text-slate2-500 mb-10 text-base">Your personalized scholarship journey starts here.</p>
+
+    <!-- Main card -->
+    <div class="rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden" style="background: linear-gradient(135deg, #245828 0%, #3d8f3e 60%, #5fa860 100%);">
+      <!-- Bg blob inside card -->
+      <div class="absolute -top-8 -right-8 w-48 h-48 rounded-full" style="background: rgba(255,255,255,0.07);"></div>
+      <div class="absolute bottom-0 left-0 w-32 h-32 rounded-full" style="background: rgba(255,255,255,0.05);"></div>
+
+      <div class="flex-1 z-10">
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-600 mb-4" style="background: rgba(255,255,255,0.2); color: #c8f0c8;">PERSONALIZED FOR YOU</span>
+        <h2 class="font-display text-3xl text-white font-700 mb-3">Fill Student Information</h2>
+        <p class="text-green-200 text-sm mb-7 leading-relaxed max-w-md">Find scholarships that match your academic profile and financial needs. Let us recommend the best opportunities for you.</p>
+        <button onclick="goTo('page-form')" class="btn-primary inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-600 text-sm" style="background: rgba(255,255,255,0.18); color: white; border: 1.5px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px);">
+          Fill Information
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <!-- Illustration -->
+      <div class="z-10 flex-shrink-0">
+        <svg width="160" height="190" viewBox="0 0 160 190" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Grad figure -->
+          <ellipse cx="80" cy="180" rx="50" ry="8" fill="rgba(0,0,0,0.15)"/>
+          <!-- Body -->
+          <rect x="55" y="105" width="50" height="70" rx="8" fill="#1e4522"/>
+          <!-- Gown -->
+          <path d="M50 115 Q30 160 35 185 H125 Q130 160 110 115 Z" fill="#1a3d1e" opacity="0.7"/>
+          <!-- Head -->
+          <circle cx="80" cy="88" r="22" fill="#c68642"/>
+          <!-- Cap board -->
+          <rect x="52" y="66" width="56" height="8" rx="2" fill="#1e4522"/>
+          <!-- Cap top -->
+          <rect x="65" y="52" width="30" height="14" rx="2" fill="#1e4522"/>
+          <!-- Tassel -->
+          <line x1="95" y1="66" x2="105" y2="90" stroke="#d4ac52" stroke-width="2"/>
+          <circle cx="105" cy="93" r="4" fill="#d4ac52"/>
+          <!-- Arm raised -->
+          <path d="M55 120 Q30 100 20 80" stroke="#1e4522" stroke-width="12" stroke-linecap="round"/>
+          <circle cx="20" cy="77" r="8" fill="#c68642"/>
+          <!-- Diploma -->
+          <rect x="5" y="68" width="24" height="18" rx="3" fill="#faf5e4" stroke="#d4ac52" stroke-width="1.5"/>
+          <line x1="9" y1="74" x2="25" y2="74" stroke="#dfc374" stroke-width="1.5"/>
+          <line x1="9" y1="78" x2="25" y2="78" stroke="#dfc374" stroke-width="1.5"/>
+          <line x1="9" y1="82" x2="19" y2="82" stroke="#dfc374" stroke-width="1.5"/>
+          <!-- Orange sash -->
+          <path d="M80 127 L60 185" stroke="#f97316" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="grid grid-cols-3 gap-4 mt-8">
+      <div class="bg-white rounded-2xl p-5 border border-forest-100 text-center shadow-sm">
+        <p class="font-display text-3xl text-forest-700 font-800">6</p>
+        <p class="text-xs text-slate2-500 mt-1 font-500">Available Scholarships</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 border border-forest-100 text-center shadow-sm">
+        <p class="font-display text-3xl text-forest-700 font-800">95%</p>
+        <p class="text-xs text-slate2-500 mt-1 font-500">Match Accuracy</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 border border-forest-100 text-center shadow-sm">
+        <p class="font-display text-3xl text-forest-700 font-800">Free</p>
+        <p class="text-xs text-slate2-500 mt-1 font-500">No Application Fee</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ======= SCHOLARSHIPS PAGE ======= -->
+<div id="page-scholarships" class="page min-h-screen" style="background:#f8fdf8;">
+  <!-- Navbar -->
+  <nav class="sticky top-0 z-50 shadow-md" style="background: linear-gradient(90deg, #1e4522 0%, #2d7030 100%);">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white bg-opacity-20">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+        </div>
+        <div>
+          <p class="text-white font-600 text-sm leading-tight">Scholarship</p>
+          <p class="text-green-300 text-xs">Recommendation System</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-8">
+        <button onclick="goTo('page-home')" class="text-green-300 hover:text-white transition font-500 text-sm">Home</button>
+        <button onclick="goTo('page-scholarships')" class="text-white font-600 nav-active text-sm">Scholarships</button>
+        <button onclick="goTo('page-login')" class="text-green-300 hover:text-white transition font-500 text-sm">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-10 relative">
+    <div class="absolute top-0 right-0 w-40 h-40 dot-pattern"></div>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+      <div>
+        <h1 class="font-display text-4xl font-800 text-forest-800">Scholarships</h1>
+        <p class="text-slate2-500 mt-1 text-sm">Explore available scholarships that you can apply for.</p>
+      </div>
+      <!-- Search -->
+      <div class="relative">
+        <input id="search-input" type="text" placeholder="Search scholarships..." oninput="filterScholarships()"
+          class="pl-4 pr-10 py-3 rounded-xl border-2 border-forest-100 bg-white text-forest-800 placeholder-slate2-300 text-sm w-64 shadow-sm">
+        <svg class="absolute right-3 top-3.5 w-4 h-4 text-forest-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+    </div>
+
+    <div id="scholarships-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Cards injected by JS -->
+    </div>
+  </div>
+</div>
+
+
+<!-- ======= FORM PAGE ======= -->
+<div id="page-form" class="page min-h-screen" style="background: linear-gradient(160deg, #f0f7f0 0%, #fdfbf5 100%);">
+  <!-- Top bar -->
+  <div class="sticky top-0 z-50 shadow-sm" style="background: linear-gradient(90deg, #1e4522 0%, #2d7030 100%);">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <button onclick="goTo('page-home')" class="w-9 h-9 rounded-xl bg-white bg-opacity-20 flex items-center justify-center hover:bg-opacity-30 transition">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <span class="text-white font-600 text-sm">Student Information</span>
+      <div class="w-9"></div>
+    </div>
+  </div>
+
+  <div class="max-w-5xl mx-auto px-6 py-10">
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <div class="flex items-center justify-center gap-3 mb-4">
+        <div class="h-0.5 w-16 rounded" style="background: linear-gradient(to right, transparent, #5fa860);"></div>
+        <h1 class="font-display text-4xl font-800 text-forest-800">Student Profile Form</h1>
+        <div class="h-0.5 w-16 rounded" style="background: linear-gradient(to left, transparent, #5fa860);"></div>
+      </div>
+      <p class="text-slate2-500 text-sm">Fill in your details to receive personalized scholarship recommendations.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Personal Information -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">
+        <h3 class="font-display text-lg font-700 text-forest-800 text-center mb-5 pb-3 border-b border-forest-50">Personal Information</h3>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-xs font-600 text-forest-700 mb-1.5">First Name</label>
+            <input type="text" placeholder="Juan" class="w-full px-3 py-2.5 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 text-sm placeholder-slate2-300 transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-600 text-forest-700 mb-1.5">Last Name</label>
+            <input type="text" placeholder="Dela Cruz" class="w-full px-3 py-2.5 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 text-sm placeholder-slate2-300 transition-all">
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-600 text-forest-700 mb-1.5">Age</label>
+            <input type="number" placeholder="18" class="w-full px-3 py-2.5 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 text-sm placeholder-slate2-300 transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-600 text-forest-700 mb-1.5">Sex</label>
+            <select class="w-full px-3 py-2.5 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 text-sm transition-all">
+              <option value="">—</option>
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-600 text-forest-700 mb-1.5">Civil Status</label>
+            <select class="w-full px-3 py-2.5 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 text-sm transition-all">
+              <option value="">—</option>
+              <option>Single</option>
+              <option>Married</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Academic Information -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">
+        <h3 class="font-display text-lg font-700 text-forest-800 text-center mb-5 pb-3 border-b border-forest-50">Academic Information</h3>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-xs font-600 text-forest-700 mb-1.5">Year Level</label>
+            <select class="w-full px-3 py-2.5 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 text-sm transition-all">
+              <option value="">Select</option>
+              <option>1st Year</option>
+              <option>2nd Year</option>
+              <option>3rd Year</option>
+              <option>4th Year</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-600 text-forest-700 mb-1.5">GWA (1.0–5.0)</label>
+            <input type="number" step="0.01" min="1" max="5" placeholder="1.75" class="w-full px-3 py-2.5 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 text-sm placeholder-slate2-300 transition-all">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-600 text-forest-700 mb-1.5">Course / Program</label>
+          <input type="text" placeholder="e.g. BS Computer Science" class="w-full px-3 py-2.5 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 text-sm placeholder-slate2-300 transition-all">
+        </div>
+      </div>
+
+      <!-- Financial Information -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">
+        <h3 class="font-display text-lg font-700 text-forest-800 text-center mb-5 pb-3 border-b border-forest-50">Financial Information</h3>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-xs font-600 text-forest-700 mb-1.5">Mother's Occupation</label>
+            <input type="text" placeholder="e.g. Teacher" class="w-full px-3 py-2.5 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 text-sm placeholder-slate2-300 transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-600 text-forest-700 mb-1.5">Father's Occupation</label>
+            <input type="text" placeholder="e.g. Driver" class="w-full px-3 py-2.5 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 text-sm placeholder-slate2-300 transition-all">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-600 text-forest-700 mb-1.5">Family Annual Income (₱)</label>
+          <input type="number" placeholder="e.g. 180000" class="w-full px-3 py-2.5 rounded-xl border-2 border-forest-100 bg-forest-50 text-forest-800 text-sm placeholder-slate2-300 transition-all">
+        </div>
+      </div>
+
+      <!-- Additional Information -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">
+        <h3 class="font-display text-lg font-700 text-forest-800 text-center mb-5 pb-3 border-b border-forest-50">Additional Information</h3>
+        <p class="text-xs font-600 text-forest-700 mb-3">Check all that apply:</p>
+        <div class="grid grid-cols-2 gap-2.5">
+          <label class="check-item flex items-center gap-2 text-sm text-forest-700 cursor-pointer hover:text-forest-600">
+            <input type="checkbox"> <span>4P's Beneficiary</span>
+          </label>
+          <label class="check-item flex items-center gap-2 text-sm text-forest-700 cursor-pointer hover:text-forest-600">
+            <input type="checkbox"> <span>Solo Parent Dependent</span>
+          </label>
+          <label class="check-item flex items-center gap-2 text-sm text-forest-700 cursor-pointer hover:text-forest-600">
+            <input type="checkbox"> <span>Person with Disability (PWD)</span>
+          </label>
+          <label class="check-item flex items-center gap-2 text-sm text-forest-700 cursor-pointer hover:text-forest-600">
+            <input type="checkbox"> <span>Indigenous People</span>
+          </label>
+          <label class="check-item flex items-center gap-2 text-sm text-forest-700 cursor-pointer hover:text-forest-600">
+            <input type="checkbox"> <span>OFW Dependent</span>
+          </label>
+          <label class="check-item flex items-center gap-2 text-sm text-forest-700 cursor-pointer hover:text-forest-600">
+            <input type="checkbox"> <span>Has Existing Scholarship</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit button -->
+    <button onclick="processFormAndShowResults()" class="btn-primary w-full py-4 rounded-2xl text-white font-600 text-base" style="background: linear-gradient(135deg, #1e4522, #3d8f3e);">
+      Get Scholarship Recommendation
+      <span class="ml-2">→</span>
+    </button>
+  </div>
+</div>
+
+
+<!-- ======= RESULTS PAGE ======= -->
+<div id="page-results" class="page min-h-screen" style="background: linear-gradient(160deg, #f0f7f0 0%, #fdfbf5 100%);">
+  <!-- Top bar -->
+  <div class="sticky top-0 z-50 shadow-sm" style="background: linear-gradient(90deg, #1e4522 0%, #2d7030 100%);">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <button onclick="goTo('page-form')" class="w-9 h-9 rounded-xl bg-white bg-opacity-20 flex items-center justify-center hover:bg-opacity-30 transition">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <span class="text-white font-600 text-sm">Scholarship Recommendation</span>
+      <div class="w-9"></div>
+    </div>
+  </div>
+
+  <div class="max-w-5xl mx-auto px-6 py-10">
+    <div class="text-center mb-10">
+      <div class="flex items-center justify-center gap-3 mb-3">
+        <div class="h-0.5 w-16 rounded" style="background: linear-gradient(to right, transparent, #5fa860);"></div>
+        <h1 class="font-display text-4xl font-800 text-forest-800">Recommended Scholarships</h1>
+        <div class="h-0.5 w-16 rounded" style="background: linear-gradient(to left, transparent, #5fa860);"></div>
+      </div>
+      <p class="text-slate2-500 text-sm">Based on the information you provided, these scholarships suit your profile.</p>
+      <p id="user-greeting" class="text-forest-600 text-sm mt-2 font-600"></p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Result Card 1 -->
+      <div class="scholarship-card rounded-2xl overflow-hidden shadow-md border border-forest-100">
+        <div class="p-5 text-center" style="background: linear-gradient(135deg, #245828, #3d8f3e);">
+          <h3 class="font-display text-lg text-white font-700 mb-3">SM Foundation College Scholarship</h3>
+          <div class="inline-flex flex-col items-center justify-center">
+            <svg width="80" height="80" class="mb-1">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="6"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round"
+                stroke-dasharray="213" stroke-dashoffset="43" transform="rotate(-90 40 40)"/>
+              <text x="40" y="45" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="DM Sans">83%</text>
+            </svg>
+            <span class="text-yellow-300 text-xs font-600 tracking-wide">MATCH SCORE</span>
+          </div>
+        </div>
+        <div class="bg-white p-5">
+          <p class="text-xs font-600 text-forest-700 mb-2">Why you match:</p>
+          <ul class="space-y-1.5 mb-4">
+            <li class="flex items-start gap-1.5 text-xs text-slate2-600"><span class="text-green-500 mt-0.5">✓</span> GWA meets the requirement</li>
+            <li class="flex items-start gap-1.5 text-xs text-slate2-600"><span class="text-green-500 mt-0.5">✓</span> Financial need qualifies</li>
+          </ul>
+          <div class="text-xs text-slate2-500 mb-4 space-y-1 border-t border-forest-50 pt-3">
+            <p><span class="font-600">Eligibility:</span> Good academic standing, financial need</p>
+            <p><span class="font-600">Benefit:</span> Full tuition, monthly allowance</p>
+          </div>
+          <button onclick="viewScholarshipDetails(0)" class="btn-primary w-full py-2.5 rounded-xl text-white text-xs font-600" style="background: linear-gradient(135deg, #245828, #3d8f3e);">View Details</button>
+        </div>
+      </div>
+
+      <!-- Result Card 2 -->
+      <div class="scholarship-card rounded-2xl overflow-hidden shadow-md border border-forest-100">
+        <div class="p-5 text-center" style="background: linear-gradient(135deg, #245828, #3d8f3e);">
+          <h3 class="font-display text-lg text-white font-700 mb-3">DOST-SEI Undergraduate Scholarship</h3>
+          <div class="inline-flex flex-col items-center justify-center">
+            <svg width="80" height="80" class="mb-1">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="6"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round"
+                stroke-dasharray="213" stroke-dashoffset="64" transform="rotate(-90 40 40)"/>
+              <text x="40" y="45" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="DM Sans">70%</text>
+            </svg>
+            <span class="text-yellow-300 text-xs font-600 tracking-wide">MATCH SCORE</span>
+          </div>
+        </div>
+        <div class="bg-white p-5">
+          <p class="text-xs font-600 text-forest-700 mb-2">Why you match:</p>
+          <ul class="space-y-1.5 mb-4">
+            <li class="flex items-start gap-1.5 text-xs text-slate2-600"><span class="text-green-500 mt-0.5">✓</span> Strong grades in Math & Science</li>
+            <li class="flex items-start gap-1.5 text-xs text-slate2-600"><span class="text-green-500 mt-0.5">✓</span> STEM course enrolled</li>
+          </ul>
+          <div class="text-xs text-slate2-500 mb-4 space-y-1 border-t border-forest-50 pt-3">
+            <p><span class="font-600">Eligibility:</span> STEM students entering college</p>
+            <p><span class="font-600">Benefit:</span> Tuition, stipend, book & clothing allowance</p>
+          </div>
+          <button onclick="viewScholarshipDetails(2)" class="btn-primary w-full py-2.5 rounded-xl text-white text-xs font-600" style="background: linear-gradient(135deg, #245828, #3d8f3e);">View Details</button>
+        </div>
+      </div>
+
+      <!-- Result Card 3 -->
+      <div class="scholarship-card rounded-2xl overflow-hidden shadow-md border border-forest-100">
+        <div class="p-5 text-center" style="background: linear-gradient(135deg, #245828, #3d8f3e);">
+          <h3 class="font-display text-lg text-white font-700 mb-3">LandBank Scholarship Program</h3>
+          <div class="inline-flex flex-col items-center justify-center">
+            <svg width="80" height="80" class="mb-1">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="6"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round"
+                stroke-dasharray="213" stroke-dashoffset="85" transform="rotate(-90 40 40)"/>
+              <text x="40" y="45" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="DM Sans">60%</text>
+            </svg>
+            <span class="text-yellow-300 text-xs font-600 tracking-wide">MATCH SCORE</span>
+          </div>
+        </div>
+        <div class="bg-white p-5">
+          <p class="text-xs font-600 text-forest-700 mb-2">Why you match:</p>
+          <ul class="space-y-1.5 mb-4">
+            <li class="flex items-start gap-1.5 text-xs text-slate2-600"><span class="text-green-500 mt-0.5">✓</span> Academic excellence</li>
+            <li class="flex items-start gap-1.5 text-xs text-slate2-600"><span class="text-yellow-500 mt-0.5">~</span> Course not in priority list</li>
+          </ul>
+          <div class="text-xs text-slate2-500 mb-4 space-y-1 border-t border-forest-50 pt-3">
+            <p><span class="font-600">Eligibility:</span> Agriculture, finance or related courses</p>
+            <p><span class="font-600">Benefit:</span> Tuition and financial assistance</p>
+          </div>
+          <button onclick="viewScholarshipDetails(1)" class="btn-primary w-full py-2.5 rounded-xl text-white text-xs font-600" style="background: linear-gradient(135deg, #245828, #3d8f3e);">View Details</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ======= DETAIL PAGE ======= -->
+<div id="page-detail" class="page min-h-screen" style="background: linear-gradient(160deg, #f0f7f0 0%, #fdfbf5 100%);">
+  <div class="sticky top-0 z-50 shadow-sm" style="background: linear-gradient(90deg, #1e4522 0%, #2d7030 100%);">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <button onclick="goTo('page-results')" class="w-9 h-9 rounded-xl bg-white bg-opacity-20 flex items-center justify-center hover:bg-opacity-30 transition">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <span class="text-white font-600 text-sm">Scholarship Details</span>
+      <div class="w-9"></div>
+    </div>
+  </div>
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+    <!-- Badge -->
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-600 mb-4" style="background: #dceedd; color: #1e4522;">
+      <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span> Currently Accepting Applications
+    </div>
+
+    <h1 id="detail-title" class="font-display text-3xl font-800 text-forest-800 mb-1">SM Foundation College Scholarship</h1>
+    <p id="detail-provider" class="text-slate2-500 text-sm mb-6">Provider: SM Foundation · Updated: March 2025</p>
+
+    <!-- Match score banner -->
+    <div class="rounded-2xl p-5 mb-6 flex items-center gap-5" style="background: linear-gradient(135deg, #245828, #3d8f3e);">
+      <svg width="60" height="60">
+        <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="5"/>
+        <circle cx="30" cy="30" r="25" fill="none" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"
+          stroke-dasharray="157" stroke-dashoffset="27" transform="rotate(-90 30 30)"/>
+        <text id="detail-match-score" x="30" y="35" text-anchor="middle" fill="white" font-size="13" font-weight="bold" font-family="DM Sans">83%</text>
+      </svg>
+      <div>
+        <p class="text-yellow-300 text-xs font-600 tracking-wide">YOUR MATCH SCORE</p>
+        <p class="text-white text-sm mt-0.5">Great match! You qualify for most requirements.</p>
+      </div>
+    </div>
+
+    <!-- Details grid -->
+    <div class="space-y-4">
+      <div class="bg-white rounded-2xl p-5 border border-forest-50 shadow-sm">
+        <h3 class="font-600 text-forest-800 mb-3 flex items-center gap-2"><span class="w-5 h-5 rounded-md flex items-center justify-center text-xs" style="background:#dceedd;">📋</span> Requirements</h3>
+        <ul id="detail-requirements" class="space-y-2 text-sm text-slate2-600">
+          <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">•</span> Good academic standing (GWA 2.0 or better)</li>
+          <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">•</span> Filipino citizen enrolled in college</li>
+          <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">•</span> Family annual income below ₱400,000</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 border border-forest-50 shadow-sm">
+        <h3 class="font-600 text-forest-800 mb-3 flex items-center gap-2"><span class="w-5 h-5 rounded-md flex items-center justify-center text-xs" style="background:#dceedd;">🎁</span> Benefits</h3>
+        <ul id="detail-benefits" class="space-y-2 text-sm text-slate2-600">
+          <li class="flex items-start gap-2"><span class="text-forest-500 mt-0.5">•</span> Full tuition coverage</li>
+          <li class="flex items-start gap-2"><span class="text-forest-500 mt-0.5">•</span> Monthly allowance (₱3,000/month)</li>
+          <li class="flex items-start gap-2"><span class="text-forest-500 mt-0.5">•</span> Part-time job opportunities within SM</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 border border-forest-50 shadow-sm">
+        <h3 class="font-600 text-forest-800 mb-3 flex items-center gap-2"><span class="w-5 h-5 rounded-md flex items-center justify-center text-xs" style="background:#dceedd;">📅</span> Application Period</h3>
+        <p class="text-sm text-slate2-600">January – April each year. Applications submitted online via the SM Foundation website.</p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 border border-forest-50 shadow-sm">
+        <h3 class="font-600 text-forest-800 mb-3 flex items-center gap-2"><span class="w-5 h-5 rounded-md flex items-center justify-center text-xs" style="background:#dceedd;">📝</span> How to Apply</h3>
+        <ol id="detail-application-steps" class="space-y-3 text-sm text-slate2-600">
+          <li class="flex items-start gap-3"><span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-600 flex items-center justify-center">1</span> Visit the SM Foundation website at smfoundation.org</li>
+          <li class="flex items-start gap-3"><span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-600 flex items-center justify-center">2</span> Click on 'Scholarships' and select 'College Scholarship Program'</li>
+          <li class="flex items-start gap-3"><span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-600 flex items-center justify-center">3</span> Create an account or log in to your existing account</li>
+          <li class="flex items-start gap-3"><span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-600 flex items-center justify-center">4</span> Fill out the online application form with personal and academic information</li>
+          <li class="flex items-start gap-3"><span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-600 flex items-center justify-center">5</span> Upload required documents: birth certificate, income proof, grades transcript</li>
+          <li class="flex items-start gap-3"><span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-600 flex items-center justify-center">6</span> Submit the application before the April deadline</li>
+          <li class="flex items-start gap-3"><span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-600 flex items-center justify-center">7</span> Wait for email notification for interview scheduling</li>
+          <li class="flex items-start gap-3"><span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-600 flex items-center justify-center">8</span> Attend the virtual or in-person interview</li>
+          <li class="flex items-start gap-3"><span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-600 flex items-center justify-center">9</span> Receive scholarship award notification within 2-3 months</li>
+        </ol>
+      </div>
+
+      <div class="bg-yellow-50 rounded-2xl p-5 border border-yellow-200 shadow-sm">
+        <h3 class="font-600 text-yellow-800 mb-3 flex items-center gap-2"><span class="w-5 h-5 rounded-md flex items-center justify-center text-xs" style="background:#fef3c7;">🛡️</span> Security Note</h3>
+        <p id="detail-security-note" class="text-sm text-yellow-700">Always verify the official SM Foundation website. Never share sensitive information via email or unofficial channels.</p>
+      </div>
+    </div>
+
+    <button class="btn-primary w-full mt-6 py-4 rounded-2xl text-white font-600 text-base" style="background: linear-gradient(135deg, #1e4522, #3d8f3e);">
+      Apply Now →
+    </button>
+  </div>
+</div>
+
+
+<script>
+// ---- Navigation ----
+function goTo(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// Login and remove login page
+function loginAndRemovePage() {
+  goTo('page-home');
+  // Remove the login page from DOM after a short delay to ensure smooth transition
+  setTimeout(() => {
+    const loginPage = document.getElementById('page-login');
+    if (loginPage) {
+      loginPage.remove();
+    }
+  }, 500);
+}
+
+// Logout function - reloads the page to reset the application
+function logout() {
+  location.reload();
+}
+
+// ---- View Scholarship Details ----
+function viewScholarshipDetails(index) {
+  let scholarship = scholarships[index];
+  
+  // If we have current results with match scores, use that instead
+  if (currentResults) {
+    const resultScholarship = currentResults.find(s => s.name === scholarships[index].name);
+    if (resultScholarship) {
+      scholarship = resultScholarship;
+    }
+  }
+
+  if (!scholarship) return;
+
+  // Get current match score
+  const currentMatchScore = scholarship.matchScore || 83;
+
+  // Sanitize content to prevent XSS
+  const sanitizeHTML = (str) => {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  };
+
+  // Update detail page content
+  document.getElementById('detail-title').textContent = scholarship.name;
+  document.getElementById('detail-provider').textContent = `Provider: ${scholarship.provider}`;
+  document.getElementById('detail-match-score').textContent = currentMatchScore + '%';
+  document.getElementById('detail-requirements').innerHTML = scholarship.requirement.split(', ').map(req => 
+    `<li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">•</span> ${sanitizeHTML(req)}</li>`
+  ).join('');
+  document.getElementById('detail-benefits').innerHTML = scholarship.benefit.split(', ').map(benefit => 
+    `<li class="flex items-start gap-2"><span class="text-forest-500 mt-0.5">•</span> ${sanitizeHTML(benefit)}</li>`
+  ).join('');
+  document.getElementById('detail-application-steps').innerHTML = scholarship.applicationSteps.map((step, i) => 
+    `<li class="flex items-start gap-3"><span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-600 flex items-center justify-center">${i + 1}</span> ${sanitizeHTML(step)}</li>`
+  ).join('');
+  document.getElementById('detail-security-note').textContent = scholarship.securityNote;
+
+  goTo('page-detail');
+}
+
+// ---- Form Processing and Dynamic Comparison ----
+
+// Global variable to store current user data
+let currentUserData = null;
+let currentResults = null; // Store current sorted results
+
+// Collect form data
+function collectFormData() {
+  const formPage = document.getElementById('page-form');
+  return {
+    firstName: formPage.querySelector('input[placeholder="Juan"]')?.value || '',
+    lastName: formPage.querySelector('input[placeholder="Dela Cruz"]')?.value || '',
+    age: parseInt(formPage.querySelector('input[placeholder="18"]')?.value) || 0,
+    sex: formPage.querySelectorAll('select')[0]?.value || '',
+    civilStatus: formPage.querySelectorAll('select')[1]?.value || '',
+    yearLevel: formPage.querySelectorAll('select')[2]?.value || '',
+    gwa: parseFloat(formPage.querySelector('input[placeholder="1.75"]')?.value) || 5.0,
+    course: formPage.querySelector('input[placeholder="e.g. BS Computer Science"]')?.value || '',
+    motherOccupation: formPage.querySelector('input[placeholder="e.g. Teacher"]')?.value || '',
+    fatherOccupation: formPage.querySelector('input[placeholder="e.g. Driver"]')?.value || '',
+    familyIncome: parseInt(formPage.querySelector('input[placeholder="e.g. 180000"]')?.value) || 0,
+    is4psBeneficiary: formPage.querySelectorAll('input[type="checkbox"]')[0]?.checked || false,
+    isSoloParentDependent: formPage.querySelectorAll('input[type="checkbox"]')[1]?.checked || false,
+    isPwd: formPage.querySelectorAll('input[type="checkbox"]')[2]?.checked || false,
+    isIndigenous: formPage.querySelectorAll('input[type="checkbox"]')[3]?.checked || false,
+    isOfwDependent: formPage.querySelectorAll('input[type="checkbox"]')[4]?.checked || false,
+    hasExistingScholarship: formPage.querySelectorAll('input[type="checkbox"]')[5]?.checked || false
+  };
+}
+
+// Calculate match score for a scholarship
+function calculateMatchScore(scholarship, userData) {
+  let score = 0;
+  let maxScore = 100;
+  let reasons = [];
+
+  switch(scholarship.name) {
+    case "SM Foundation College Scholarship":
+      // Academic: GWA 2.0 or better
+      if (userData.gwa <= 2.0) {
+        score += 40;
+        reasons.push("✓ GWA meets the requirement");
+      } else if (userData.gwa <= 2.5) {
+        score += 20;
+        reasons.push("~ GWA is acceptable but could be better");
+      }
+
+      // Financial need: income below 400k
+      if (userData.familyIncome < 400000) {
+        score += 40;
+        reasons.push("✓ Financial need qualifies");
+      } else if (userData.familyIncome < 600000) {
+        score += 20;
+        reasons.push("~ Moderate financial need");
+      }
+
+      // Additional points for special circumstances
+      if (userData.is4psBeneficiary || userData.isSoloParentDependent || userData.isPwd) {
+        score += 10;
+        reasons.push("✓ Additional support factors present");
+      }
+      break;
+
+    case "DOST-SEI Undergraduate Scholarship":
+      // Strong grades in Math & Science (GWA 1.5 or better)
+      if (userData.gwa <= 1.5) {
+        score += 50;
+        reasons.push("✓ Strong grades in Math & Science");
+      } else if (userData.gwa <= 2.0) {
+        score += 30;
+        reasons.push("~ Good academic performance");
+      }
+
+      // STEM course
+      const stemCourses = ['computer', 'engineering', 'science', 'math', 'technology', 'physics', 'chemistry', 'biology'];
+      const courseLower = userData.course.toLowerCase();
+      const isStem = stemCourses.some(keyword => courseLower.includes(keyword));
+      if (isStem) {
+        score += 40;
+        reasons.push("✓ STEM course enrolled");
+      } else {
+        score += 10;
+        reasons.push("~ Course may not be STEM-focused");
+      }
+      break;
+
+    case "LandBank Scholarship Program":
+      // Academic excellence (GWA 1.75 or better)
+      if (userData.gwa <= 1.75) {
+        score += 50;
+        reasons.push("✓ Academic excellence");
+      } else if (userData.gwa <= 2.25) {
+        score += 25;
+        reasons.push("~ Good academic standing");
+      }
+
+      // Priority courses: agriculture, finance, related
+      const priorityCourses = ['agriculture', 'finance', 'business', 'economics', 'accounting'];
+      const courseLower2 = userData.course.toLowerCase();
+      const isPriority = priorityCourses.some(keyword => courseLower2.includes(keyword));
+      if (isPriority) {
+        score += 40;
+        reasons.push("✓ Course in priority list");
+      } else {
+        score += 10;
+        reasons.push("~ Course not in priority list");
+      }
+      break;
+
+    case "CHED Tulong Dunong Program":
+      // Financial need (income below 300k)
+      if (userData.familyIncome < 300000) {
+        score += 60;
+        reasons.push("✓ Strong financial need");
+      } else if (userData.familyIncome < 500000) {
+        score += 30;
+        reasons.push("~ Moderate financial need");
+      }
+
+      // Academic: any reasonable GWA
+      if (userData.gwa <= 3.0) {
+        score += 30;
+        reasons.push("✓ Academic standing acceptable");
+      }
+
+      // Additional points for special circumstances
+      if (userData.is4psBeneficiary || userData.isSoloParentDependent || userData.isPwd || userData.isIndigenous) {
+        score += 10;
+        reasons.push("✓ Additional support factors present");
+      }
+      break;
+
+    case "Ayala Foundation Scholarship":
+      // High academic achievement (GWA 1.5 or better)
+      if (userData.gwa <= 1.5) {
+        score += 60;
+        reasons.push("✓ High academic achievement");
+      } else if (userData.gwa <= 2.0) {
+        score += 40;
+        reasons.push("✓ Good academic achievement");
+      }
+
+      // Leadership potential (based on additional factors)
+      if (userData.is4psBeneficiary || userData.isSoloParentDependent || userData.isPwd || userData.isIndigenous) {
+        score += 20;
+        reasons.push("✓ Leadership potential indicators");
+      }
+
+      // Freshman status
+      if (userData.yearLevel === "1st Year") {
+        score += 20;
+        reasons.push("✓ Incoming college freshman");
+      }
+      break;
+
+    case "GSIS Educational Loan":
+      // Parent is GSIS member (we'll assume based on occupation keywords)
+      const gsisOccupations = ['government', 'teacher', 'nurse', 'doctor', 'military', 'police', 'firefighter'];
+      const motherGsis = gsisOccupations.some(keyword =>
+        userData.motherOccupation.toLowerCase().includes(keyword));
+      const fatherGsis = gsisOccupations.some(keyword =>
+        userData.fatherOccupation.toLowerCase().includes(keyword));
+
+      if (motherGsis || fatherGsis) {
+        score += 80;
+        reasons.push("✓ Parent/guardian likely GSIS member");
+      } else {
+        score += 10;
+        reasons.push("~ GSIS membership uncertain");
+      }
+
+      // Academic standing
+      if (userData.gwa <= 3.0) {
+        score += 20;
+        reasons.push("✓ Academic standing acceptable");
+      }
+      break;
+  }
+
+  // Ensure score doesn't exceed 100
+  score = Math.min(score, 100);
+
+  return {
+    score: Math.round(score),
+    reasons: reasons.length > 0 ? reasons : ["No specific matches found"]
+  };
+}
+
+// Process form and show results
+function processFormAndShowResults() {
+  const userData = collectFormData();
+  currentUserData = userData; // Store globally
+
+  // Validate required fields
+  if (!userData.firstName.trim() || !userData.lastName.trim()) {
+    alert("Please enter your first and last name.");
+    goTo('page-form');
+    return;
+  }
+
+  if (!userData.course.trim()) {
+    alert("Please enter your course/program.");
+    goTo('page-form');
+    return;
+  }
+
+  if (isNaN(userData.gwa) || userData.gwa < 1.0 || userData.gwa > 5.0) {
+    alert("Please enter a valid GWA between 1.0 and 5.0.");
+    goTo('page-form');
+    return;
+  }
+
+  if (isNaN(userData.familyIncome) || userData.familyIncome < 0) {
+    alert("Please enter a valid family annual income.");
+    goTo('page-form');
+    return;
+  }
+
+  // Calculate scores for all scholarships
+  const results = scholarships.map(scholarship => {
+    const match = calculateMatchScore(scholarship, userData);
+    return {
+      ...scholarship,
+      matchScore: match.score,
+      matchReasons: match.reasons
+    };
+  });
+
+  // Sort by match score descending
+  results.sort((a, b) => b.matchScore - a.matchScore);
+  currentResults = results; // Store globally
+
+  // Update results page with top 3
+  updateResultsPage(results.slice(0, 3));
+
+  // Go to results page
+  goTo('page-results');
+}
+
+// Update results page with dynamic data
+function updateResultsPage(topScholarships) {
+  const greetingElement = document.getElementById('user-greeting');
+  if (currentUserData && currentUserData.firstName && currentUserData.lastName) {
+    greetingElement.textContent = `Hello, ${currentUserData.firstName} ${currentUserData.lastName}!`;
+  } else {
+    greetingElement.textContent = '';
+  }
+
+  const resultsContainer = document.querySelector('#page-results .grid.grid-cols-1.md\\:grid-cols-3');
+  resultsContainer.innerHTML = topScholarships.map((scholarship, index) => {
+    const matchScore = scholarship.matchScore;
+    const strokeDashoffset = 251 - (251 * matchScore / 100);
+
+    return `
+      <div class="scholarship-card rounded-2xl overflow-hidden shadow-md border border-forest-100">
+        <div class="p-5 text-center" style="background: linear-gradient(135deg, #245828, #3d8f3e);">
+          <h3 class="font-display text-lg text-white font-700 mb-3">${scholarship.name}</h3>
+          <div class="inline-flex flex-col items-center justify-center">
+            <svg width="80" height="80" class="mb-1">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="6"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round"
+                stroke-dasharray="213" stroke-dashoffset="${strokeDashoffset}" transform="rotate(-90 40 40)"/>
+              <text x="40" y="45" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="DM Sans">${matchScore}%</text>
+            </svg>
+            <span class="text-yellow-300 text-xs font-600 tracking-wide">MATCH SCORE</span>
+          </div>
+        </div>
+        <div class="bg-white p-5">
+          <p class="text-xs font-600 text-forest-700 mb-2">Why you match:</p>
+          <ul class="space-y-1.5 mb-4">
+            ${scholarship.matchReasons.map(reason => `<li class="flex items-start gap-1.5 text-xs text-slate2-600">${reason}</li>`).join('')}
+          </ul>
+          <div class="text-xs text-slate2-500 mb-4 space-y-1 border-t border-forest-50 pt-3">
+            <p><span class="font-600">Eligibility:</span> ${scholarship.eligibility}</p>
+            <p><span class="font-600">Benefit:</span> ${scholarship.benefit}</p>
+          </div>
+          <button onclick="viewScholarshipDetails(${scholarships.findIndex(s => s.name === scholarship.name)})" class="btn-primary w-full py-2.5 rounded-xl text-white text-xs font-600" style="background: linear-gradient(135deg, #245828, #3d8f3e);">View Details</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ---- Scholarship Data ----
+const scholarships = [
+  {
+    name: "SM Foundation College Scholarship",
+    provider: "SM Foundation",
+    requirement: "Good academic standing",
+    eligibility: "Students with financial need",
+    benefit: "Full tuition, monthly allowance, and part-time job opportunities",
+    tag: "Financial Need",
+    applicationSteps: [
+      "Visit the SM Foundation website at smfoundation.org",
+      "Click on 'Scholarships' and select 'College Scholarship Program'",
+      "Create an account or log in to your existing account",
+      "Fill out the online application form with personal and academic information",
+      "Upload required documents: birth certificate, income proof, grades transcript",
+      "Submit the application before the April deadline",
+      "Wait for email notification for interview scheduling",
+      "Attend the virtual or in-person interview",
+      "Receive scholarship award notification within 2-3 months"
+    ],
+    securityNote: "Always verify the official SM Foundation website. Never share sensitive information via email or unofficial channels."
+  },
+  {
+    name: "LandBank Scholarship Program",
+    provider: "Land Bank of the Philippines",
+    requirement: "Academic excellence",
+    eligibility: "Students taking agriculture, finance, or related courses",
+    benefit: "Tuition and financial assistance",
+    tag: "Merit-Based",
+    applicationSteps: [
+      "Go to the LandBank website at landbank.com",
+      "Navigate to 'Corporate Social Responsibility' > 'Scholarship Program'",
+      "Download and read the scholarship guidelines",
+      "Prepare all required documents: application form, birth certificate, grades, income tax return",
+      "Submit completed application to your school's scholarship coordinator",
+      "School coordinator reviews and endorses qualified applicants",
+      "Attend the LandBank scholarship examination",
+      "Successful examinees proceed to panel interview",
+      "Selected scholars receive award notification"
+    ],
+    securityNote: "Only submit applications through official LandBank channels or authorized school representatives."
+  },
+  {
+    name: "DOST-SEI Undergraduate Scholarship",
+    provider: "Department of Science and Technology",
+    requirement: "Strong grades in Math and Science",
+    eligibility: "STEM students entering college",
+    benefit: "Tuition coverage, monthly stipend, book allowance, and graduation clothing allowance",
+    tag: "STEM",
+    applicationSteps: [
+      "Visit the DOST-SEI website at sei.dost.gov.ph",
+      "Register for the S&T Undergraduate Scholarship examination",
+      "Take the qualifying examination (usually in October)",
+      "Wait for examination results and interview invitation",
+      "Prepare for panel interview with science teachers or mentors",
+      "Submit medical certificate and other requirements",
+      "Receive scholarship grant if selected",
+      "Attend orientation program before school year starts",
+      "Maintain good academic standing throughout the scholarship period"
+    ],
+    securityNote: "DOST-SEI examinations are free. Be wary of fake examination fees or unofficial review centers."
+  },
+  {
+    name: "CHED Tulong Dunong Program",
+    provider: "Commission on Higher Education",
+    requirement: "Financial need, enrolled in state/local university",
+    eligibility: "Financially disadvantaged students",
+    benefit: "₱8,000 per semester cash allowance",
+    tag: "Financial Need",
+    applicationSteps: [
+      "Contact your school's Student Affairs Office or CHED Regional Office",
+      "Submit application form with proof of financial need",
+      "Provide family income documents and enrollment verification",
+      "School evaluates and endorses applications",
+      "CHED Regional Office processes endorsed applications",
+      "Receive stipend through school disbursement",
+      "Reapply each semester with updated grades and enrollment",
+      "Maintain satisfactory academic performance",
+      "Report any changes in financial status to CHED"
+    ],
+    securityNote: "CHED programs are administered through schools. Never pay processing fees for government scholarships."
+  },
+  {
+    name: "Ayala Foundation Scholarship",
+    provider: "Ayala Foundation",
+    requirement: "High academic achievement, leadership potential",
+    eligibility: "Incoming college freshmen",
+    benefit: "Tuition, board & lodging, allowances",
+    tag: "Merit-Based",
+    applicationSteps: [
+      "Visit ayalafoundation.org and check scholarship announcements",
+      "Prepare academic records, leadership certificates, and recommendation letters",
+      "Submit online application during application period (usually November-December)",
+      "Take the Ayala Foundation scholarship examination",
+      "Selected applicants undergo multiple interview rounds",
+      "Finalists may be required to submit additional documents",
+      "Successful applicants receive scholarship offer",
+      "Attend scholar orientation and signing of scholarship contract",
+      "Maintain academic excellence and participate in foundation activities"
+    ],
+    securityNote: "Ayala Foundation examinations are conducted in accredited testing centers. Verify testing locations through official channels."
+  },
+  //add
+  {
+    name: "GSIS Educational Loan",
+    provider: "Government Service Insurance System",
+    requirement: "Parent/guardian is a GSIS member",
+    eligibility: "Dependents of active GSIS members",
+    benefit: "Educational loan up to ₱100,000/year",
+    tag: "Government",
+    applicationSteps: [
+      "Visit nearest GSIS branch or go to gsis.gov.ph",
+      "Download and fill out the Educational Loan Application form",
+      "Submit application with parent's GSIS membership details",
+      "Provide school enrollment verification and cost estimates",
+      "GSIS evaluates credit standing and loan eligibility",
+      "Approved loans are released directly to the school",
+      "Repayment starts after graduation or employment",
+      "Loan terms include interest and repayment schedule",
+      "Monitor loan status through GSIS online portal"
+    ],
+    securityNote: "GSIS loans require valid membership verification. Never share GSIS account details with unauthorized persons."
+  }
+];
+
+const tagColors = {
+  "Financial Need": "bg-blue-100 text-blue-700",
+  "Merit-Based": "bg-yellow-100 text-yellow-700",
+  "STEM": "bg-purple-100 text-purple-700",
+  "Government": "bg-green-100 text-green-700",
+};
+
+function renderScholarships(list) {
+  const grid = document.getElementById('scholarships-grid');
+  grid.innerHTML = list.map((s, index) => `
+    <div class="scholarship-card bg-white rounded-2xl shadow-sm border border-forest-100 overflow-hidden flex flex-col">
+      <div class="p-5 flex-1" style="background: linear-gradient(135deg, #245828, #3d8f3e);">
+        <span class="inline-block px-2.5 py-1 rounded-full text-xs font-600 mb-3 bg-white bg-opacity-20 text-white">${s.tag}</span>
+        <h3 class="font-display text-base text-white font-700 mb-1">${s.name}</h3>
+        <p class="text-green-300 text-xs mb-3">Provider: ${s.provider}</p>
+      </div>
+      <div class="p-5 bg-white flex flex-col flex-1 justify-between">
+        <div class="space-y-1.5 text-xs text-slate2-600 mb-4">
+          <p><span class="font-600 text-forest-700">Requirement:</span> ${s.requirement}</p>
+          <p><span class="font-600 text-forest-700">Eligibility:</span> ${s.eligibility}</p>
+          <p><span class="font-600 text-forest-700">Benefit:</span> ${s.benefit}</p>
+        </div>
+        <button onclick="viewScholarshipDetails(${index})" class="btn-primary w-full py-2.5 rounded-xl text-white text-xs font-600" style="background: linear-gradient(135deg, #245828, #3d8f3e);">View Details</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterScholarships() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const filtered = scholarships.filter(s =>
+    s.name.toLowerCase().includes(q) ||
+    s.provider.toLowerCase().includes(q) ||
+    s.tag.toLowerCase().includes(q)
+  );
+  renderScholarships(filtered);
+}
+
+// ---- Security Functions ----
+function sanitizeInput(input) {
+  if (typeof input !== 'string') return '';
+  // Remove potentially dangerous characters and scripts
+  return input.replace(/[<>'"&]/g, '').trim();
+}
+
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function validateNumericInput(value, min = 0, max = 999999) {
+  const num = parseFloat(value);
+  return !isNaN(num) && num >= min && num <= max;
+}
+
+// Apply security to form inputs
+function secureFormInputs() {
+  // Sanitize text inputs
+  const textInputs = document.querySelectorAll('input[type="text"], input[type="password"], textarea');
+  textInputs.forEach(input => {
+    input.addEventListener('input', function() {
+      this.value = sanitizeInput(this.value);
+    });
+  });
+
+  // Validate email inputs
+  const emailInputs = document.querySelectorAll('input[type="email"]');
+  emailInputs.forEach(input => {
+    input.addEventListener('blur', function() {
+      if (this.value && !validateEmail(this.value)) {
+        this.style.borderColor = '#ef4444';
+        alert('Please enter a valid email address');
+      } else {
+        this.style.borderColor = '#5fa860';
+      }
+    });
+  });
+
+  // Validate numeric inputs
+  const numberInputs = document.querySelectorAll('input[type="number"]');
+  numberInputs.forEach(input => {
+    input.addEventListener('input', function() {
+      if (!validateNumericInput(this.value)) {
+        this.style.borderColor = '#ef4444';
+      } else {
+        this.style.borderColor = '#5fa860';
+      }
+    });
+  });
+}
+
+// ---- Additional Security Measures ----
+// Prevent right-click context menu
+document.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+});
+
+// Prevent common keyboard shortcuts for developer tools
+document.addEventListener('keydown', function(e) {
+  // Prevent F12 (DevTools)
+  if (e.key === 'F12') {
+    e.preventDefault();
+    return false;
+  }
+  // Prevent Ctrl+Shift+I (DevTools)
+  if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+    e.preventDefault();
+    return false;
+  }
+  // Prevent Ctrl+U (View Source)
+  if (e.ctrlKey && e.key === 'u') {
+    e.preventDefault();
+    return false;
+  }
+});
+
+// Basic anti-debugging (development mode detection)
+function detectDevMode() {
+  const devtools = {
+    open: false,
+    orientation: null
+  };
+
+  const threshold = 160;
+  setInterval(() => {
+    if (window.outerHeight - window.innerHeight > threshold || window.outerWidth - window.innerWidth > threshold) {
+      if (!devtools.open) {
+        devtools.open = true;
+        console.clear();
+        console.log('Developer tools detected. This is for educational purposes only.');
+      }
+    } else {
+      devtools.open = false;
+    }
+  }, 500);
+}
+
+// Initialize additional security
+detectDevMode();
+</script>
+</body>
+</html>
