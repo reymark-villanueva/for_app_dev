@@ -122,5 +122,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'home'
 LOGIN_REDIRECT_URL = 'scholarships:student_form'
+LOGOUT_REDIRECT_URL = 'home'
+
+# Clear session on browser close (don't persist)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 PRELOAD_ML_MODELS = False

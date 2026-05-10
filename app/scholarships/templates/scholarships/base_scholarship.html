@@ -4,27 +4,93 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Scholarship Recommendation{% endblock %}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        forest: { 50:'#f0f7f0', 100:'#dceedd', 200:'#b9deba', 300:'#8bc58c', 400:'#5fa860', 500:'#3d8f3e', 600:'#2d7030', 700:'#245828', 800:'#1e4522', 900:'#18371b' },
+                        sand: { 50:'#fdfbf5', 100:'#faf5e4', 200:'#f3e9c6', 300:'#ebd9a0', 400:'#dfc374', 500:'#d4ac52' },
+                        slate2: { 50:'#f5f7f9', 100:'#e8edf2', 200:'#d0dae4', 300:'#abbcc9', 400:'#7e9aaf', 500:'#5d7d94' }
+                    },
+                    fontFamily: {
+                        display: ['"Playfair Display"', 'serif'],
+                        body: ['"DM Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * { font-family: 'Roboto', sans-serif; }
+        * { font-family: 'DM Sans', sans-serif; }
+        .font-display { font-family: 'Playfair Display', serif; }
+        
+        .dot-pattern {
+            background-image: radial-gradient(circle, #3d8f3e 1.5px, transparent 1.5px);
+            background-size: 18px 18px;
+            opacity: 0.25;
+        }
+        
+        input:focus, select:focus { 
+            outline: none; 
+            border-color: #3d8f3e; 
+            box-shadow: 0 0 0 3px rgba(61,143,62,0.15); 
+        }
+        
+        .btn-primary { transition: all 0.2s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(36,88,40,0.3); }
+        .btn-primary:active { transform: translateY(0); }
+        
+        .nav-link { position: relative; transition: color 0.2s; }
+        .nav-link:hover { color: white; }
+        .nav-link.active { color: white; }
+        .nav-link.active::after { 
+            content: ''; 
+            position: absolute; 
+            bottom: -4px; 
+            left: 0; 
+            right: 0; 
+            height: 2px; 
+            background: #5fa860; 
+            border-radius: 1px; 
+        }
+        
+        .scholarship-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+        .scholarship-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(30,69,34,0.18); }
+        
+        .check-item input[type=checkbox] { accent-color: #3d8f3e; width: 16px; height: 16px; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #dceedd; }
+        ::-webkit-scrollbar-thumb { background: #5fa860; border-radius: 3px; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="min-h-screen" style="background: #f8fdf8;">
 
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-            <h1 class="text-lg font-bold text-gray-800">SCHOLARSHIP RECOMMENDATION SYSTEM</h1>
-            <div class="flex items-center gap-4 text-sm">
-                <a href="{% url 'scholarships:student_form' %}" class="text-blue-600 hover:underline">Apply</a>
-                <a href="{% url 'scholarships:history' %}" class="text-blue-600 hover:underline">History</a>
-                <span class="text-gray-500">{{ request.user.username }}</span>
-                <a href="{% url 'logout' %}" class="text-red-500 hover:underline">Logout</a>
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-50 shadow-md" style="background: linear-gradient(90deg, #1e4522 0%, #2d7030 100%);">
+        <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+            <a href="{% url 'scholarships:student_form' %}" class="flex items-center gap-3 hover:opacity-90 transition">
+                <img src="{% url 'logo_srs' %}" alt="Scholarship Logo" class="w-14 h-14 rounded-full object-contain bg-white p-1">
+                <div>
+                    <p class="text-white font-semibold text-sm leading-tight">Scholarship</p>
+                    <p class="text-green-300 text-xs">Recommendation System</p>
+                </div>
+            </a>
+            <div class="flex items-center gap-8">
+                <a href="{% url 'scholarships:student_form' %}" class="nav-link text-green-300 font-medium text-sm">Apply</a>
+                <a href="{% url 'scholarships:history' %}" class="nav-link text-green-300 font-medium text-sm">History</a>
+                <span class="text-green-200 text-sm">{{ request.user.username }}</span>
+                <a href="{% url 'logout' %}" class="text-red-300 hover:text-red-200 transition font-medium text-sm">Logout</a>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto px-4 py-8">
+    <main class="max-w-6xl mx-auto px-6 py-10 relative">
+        <!-- Decorative elements -->
+        <div class="absolute top-0 right-0 w-40 h-40 dot-pattern pointer-events-none"></div>
         {% block content %}{% endblock %}
     </main>
 

@@ -3,45 +3,52 @@
 {% block title %}Recommendation History{% endblock %}
 
 {% block content %}
-<div class="bg-white shadow-lg rounded-2xl p-8">
-    <h2 class="text-xl font-bold text-gray-800 mb-1">Recommendation History</h2>
-    <p class="text-sm text-gray-500 mb-6">Your past scholarship recommendation submissions.</p>
+<!-- Header -->
+<div class="text-center mb-10">
+    <div class="flex items-center justify-center gap-3 mb-4">
+        <div class="h-0.5 w-16 rounded" style="background: linear-gradient(to right, transparent, #5fa860);"></div>
+        <h1 class="font-display text-4xl font-extrabold text-forest-800">Recommendation History</h1>
+        <div class="h-0.5 w-16 rounded" style="background: linear-gradient(to left, transparent, #5fa860);"></div>
+    </div>
+    <p class="text-slate2-500 text-sm">Your past scholarship recommendation submissions.</p>
+</div>
 
+<div class="bg-white rounded-2xl p-8 shadow-sm border border-forest-50">
     {% if profiles %}
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-left">
-            <thead class="bg-gray-50">
+            <thead class="bg-forest-50">
                 <tr>
-                    <th class="px-4 py-3 font-semibold text-gray-600">Date</th>
-                    <th class="px-4 py-3 font-semibold text-gray-600">Name</th>
-                    <th class="px-4 py-3 font-semibold text-gray-600">Course</th>
-                    <th class="px-4 py-3 font-semibold text-gray-600">GWA</th>
-                    <th class="px-4 py-3 font-semibold text-gray-600">Top Recommendation</th>
-                    <th class="px-4 py-3 font-semibold text-gray-600">Confidence</th>
-                    <th class="px-4 py-3 font-semibold text-gray-600"></th>
+                    <th class="px-4 py-3 font-semibold text-forest-700 rounded-tl-xl">Date</th>
+                    <th class="px-4 py-3 font-semibold text-forest-700">Name</th>
+                    <th class="px-4 py-3 font-semibold text-forest-700">Course</th>
+                    <th class="px-4 py-3 font-semibold text-forest-700">GWA</th>
+                    <th class="px-4 py-3 font-semibold text-forest-700">Top Recommendation</th>
+                    <th class="px-4 py-3 font-semibold text-forest-700">Confidence</th>
+                    <th class="px-4 py-3 font-semibold text-forest-700 rounded-tr-xl"></th>
                 </tr>
             </thead>
-            <tbody class="divide-y">
+            <tbody class="divide-y divide-forest-50">
                 {% for profile in profiles %}
                 {% with top_rec=profile.recommendations.first %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-gray-500">{{ profile.created_at|date:"M j, Y" }}</td>
-                    <td class="px-4 py-3 font-medium text-gray-800">{{ profile.first_name }} {{ profile.last_name }}</td>
-                    <td class="px-4 py-3 text-gray-600">{{ profile.course }}</td>
-                    <td class="px-4 py-3 text-gray-600">{{ profile.gwa_numeric_1to5|floatformat:2 }}</td>
-                    <td class="px-4 py-3 text-gray-800">
+                <tr class="hover:bg-forest-50 transition">
+                    <td class="px-4 py-3 text-slate2-500">{{ profile.created_at|date:"M j, Y" }}</td>
+                    <td class="px-4 py-3 font-medium text-forest-800">{{ profile.first_name }} {{ profile.last_name }}</td>
+                    <td class="px-4 py-3 text-forest-700">{{ profile.course }}</td>
+                    <td class="px-4 py-3 text-forest-700">{{ profile.gwa_numeric_1to5|floatformat:2 }}</td>
+                    <td class="px-4 py-3 text-forest-800">
                         {% if top_rec %}{{ top_rec.scholarship.name }}{% else %}--{% endif %}
                     </td>
                     <td class="px-4 py-3">
                         {% if top_rec %}
-                        <span class="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
+                        <span class="inline-block bg-forest-100 text-forest-700 px-2.5 py-1 rounded-lg text-xs font-semibold">
                             {{ top_rec.confidence_score|floatformat:1 }}%
                         </span>
                         {% endif %}
                     </td>
                     <td class="px-4 py-3">
                         <a href="{% url 'scholarships:results' profile.pk %}"
-                           class="text-blue-600 hover:underline text-sm">View</a>
+                           class="text-forest-500 hover:text-forest-700 font-semibold text-sm hover:underline">View</a>
                     </td>
                 </tr>
                 {% endwith %}
@@ -50,9 +57,14 @@
         </table>
     </div>
     {% else %}
-    <div class="text-center py-12 text-gray-400">
-        <p class="text-lg mb-2">No submissions yet.</p>
-        <a href="{% url 'scholarships:student_form' %}" class="text-blue-600 hover:underline">Submit your first application</a>
+    <div class="text-center py-12">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-forest-100">
+            <svg class="w-8 h-8 text-forest-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+        </div>
+        <p class="text-lg text-slate2-500 mb-2">No submissions yet.</p>
+        <a href="{% url 'scholarships:student_form' %}" class="text-forest-500 hover:text-forest-700 font-semibold hover:underline">Submit your first application</a>
     </div>
     {% endif %}
 </div>

@@ -6,6 +6,12 @@ class Scholarship(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, default='')
     eligibility_notes = models.TextField(blank=True, default='')
+    benefits = models.TextField(blank=True, default='')
+    requirements = models.TextField(blank=True, default='')
+    application_period = models.CharField(max_length=200, blank=True, default='')
+    application_steps = models.TextField(blank=True, default='')
+    provider = models.CharField(max_length=200, blank=True, default='')
+    website = models.URLField(blank=True, default='')
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -13,6 +19,21 @@ class Scholarship(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def get_requirements_list(self):
+        if self.requirements:
+            return [r.strip() for r in self.requirements.split('\n') if r.strip()]
+        return []
+    
+    def get_benefits_list(self):
+        if self.benefits:
+            return [b.strip() for b in self.benefits.split('\n') if b.strip()]
+        return []
+    
+    def get_application_steps_list(self):
+        if self.application_steps:
+            return [s.strip() for s in self.application_steps.split('\n') if s.strip()]
+        return []
 
 
 class StudentProfile(models.Model):
@@ -185,6 +206,7 @@ class Recommendation(models.Model):
     )
     rank = models.PositiveIntegerField()
     confidence_score = models.FloatField()
+    match_reasons = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -193,3 +215,8 @@ class Recommendation(models.Model):
 
     def __str__(self):
         return f"#{self.rank} {self.scholarship.name} ({self.confidence_score:.1f}%)"
+    
+    def get_match_reasons_list(self):
+        if self.match_reasons:
+            return [r.strip() for r in self.match_reasons.split('\n') if r.strip()]
+        return []

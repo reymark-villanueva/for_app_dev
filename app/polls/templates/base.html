@@ -4,31 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Auth{% endblock %}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        * {
-            font-family: 'Roboto', sans-serif;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        forest: { 50:'#f0f7f0', 100:'#dceedd', 200:'#b9deba', 300:'#8bc58c', 400:'#5fa860', 500:'#3d8f3e', 600:'#2d7030', 700:'#245828', 800:'#1e4522', 900:'#18371b' },
+                        sand: { 50:'#fdfbf5', 100:'#faf5e4', 200:'#f3e9c6', 300:'#ebd9a0', 400:'#dfc374', 500:'#d4ac52' },
+                        slate2: { 50:'#f5f7f9', 100:'#e8edf2', 200:'#d0dae4', 300:'#abbcc9', 400:'#7e9aaf', 500:'#5d7d94' }
+                    },
+                    fontFamily: {
+                        display: ['"Playfair Display"', 'serif'],
+                        body: ['"DM Sans"', 'sans-serif'],
+                    }
+                }
+            }
         }
+    </script>
+    <style>
+        * { font-family: 'DM Sans', sans-serif; }
+        .font-display { font-family: 'Playfair Display', serif; }
+        
+        .dot-pattern {
+            background-image: radial-gradient(circle, #3d8f3e 1.5px, transparent 1.5px);
+            background-size: 18px 18px;
+            opacity: 0.25;
+        }
+        
+        input:focus, select:focus { 
+            outline: none; 
+            border-color: #3d8f3e; 
+            box-shadow: 0 0 0 3px rgba(61,143,62,0.15); 
+        }
+        
+        .btn-primary { transition: all 0.2s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(36,88,40,0.3); }
+        .btn-primary:active { transform: translateY(0); }
     </style>
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="min-h-screen flex items-center justify-center relative overflow-hidden" style="background: linear-gradient(135deg, #1e4522 0%, #3d8f3e 50%, #5fa860 100%);">
+    <!-- Background image overlay -->
+    <div class="absolute inset-0" style="background: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1400&q=80') center/cover; opacity:0.15;"></div>
+    
+    <!-- Decorative dots -->
+    <div class="absolute bottom-12 right-12 w-32 h-32 dot-pattern" style="opacity:0.4;"></div>
+    <div class="absolute top-12 left-12 w-24 h-24 dot-pattern" style="opacity:0.3;"></div>
 
-    <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
-
-        <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">
-            SCHOLARSHIP RECOMMENDATION SYSTEM
-        </h1>
-
-        <h2 class="text-lg text-center text-gray-600 mb-6">
-            {% block heading %}{% endblock %}
-        </h2>
+    <!-- Main card -->
+    <div class="relative z-10 bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md mx-4" style="backdrop-filter: blur(10px);">
+        <!-- Logo area -->
+        <div class="text-center mb-8">
+            <img src="{% url 'logo_srs' %}" alt="Scholarship Logo" class="w-24 h-24 rounded-2xl mb-4 object-contain mx-auto bg-white p-2 shadow-sm">
+            <h1 class="font-display text-3xl font-extrabold text-forest-800 leading-tight">SCHOLARSHIP</h1>
+            <h2 class="font-display text-2xl font-bold text-forest-600">RECOMMENDATION</h2>
+            <div class="mt-3 h-0.5 w-32 mx-auto rounded" style="background: linear-gradient(to right, #5fa860, #5d7d94);"></div>
+            <p class="mt-3 text-sm text-slate2-500 font-medium tracking-wide">{% block heading %}{% endblock %}</p>
+        </div>
 
         {% block content %}
         {% endblock %}
 
+        <p class="mt-6 text-center text-xs text-slate2-400">© 2025 Scholarship Recommendation System</p>
     </div>
-
 </body>
 </html>

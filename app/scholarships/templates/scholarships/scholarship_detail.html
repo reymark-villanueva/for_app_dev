@@ -1,0 +1,194 @@
+{% extends "scholarships/base_scholarship.html" %}
+
+{% block title %}{{ scholarship.name }} - Details{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<a href="{% url 'scholarships:results' profile.pk %}" class="inline-flex items-center gap-2 text-forest-600 hover:text-forest-800 font-medium text-sm mb-6 transition">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+    </svg>
+    Back to Results
+</a>
+
+<!-- Badge -->
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-4" style="background: #dceedd; color: #1e4522;">
+    <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span> Currently Accepting Applications
+</div>
+
+<h1 class="font-display text-3xl font-extrabold text-forest-800 mb-1">{{ scholarship.name }}</h1>
+<p class="text-slate2-500 text-sm mb-6">
+    {% if scholarship.provider %}Provider: {{ scholarship.provider }} · {% endif %}
+    Submitted: {{ recommendation.created_at|date:"F j, Y" }}
+</p>
+
+<!-- Match Score Banner -->
+<div class="rounded-2xl p-5 mb-6 flex items-center gap-5" style="background: linear-gradient(135deg, #245828, #3d8f3e);">
+    <svg width="60" height="60">
+        <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="5"/>
+        <circle cx="30" cy="30" r="25" fill="none" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"
+            stroke-dasharray="157" 
+            style="stroke-dashoffset: calc(157 - (157 * {{ recommendation.confidence_score|floatformat:0 }} / 100));"
+            transform="rotate(-90 30 30)"/>
+        <text x="30" y="35" text-anchor="middle" fill="white" font-size="13" font-weight="bold" font-family="DM Sans">{{ recommendation.confidence_score|floatformat:0 }}%</text>
+    </svg>
+    <div>
+        <p class="text-yellow-300 text-xs font-semibold tracking-wide">YOUR MATCH SCORE</p>
+        {% if recommendation.confidence_score >= 70 %}
+        <p class="text-white text-sm mt-0.5">Great match! You qualify for most requirements.</p>
+        {% elif recommendation.confidence_score >= 50 %}
+        <p class="text-white text-sm mt-0.5">Good match! You meet several requirements.</p>
+        {% else %}
+        <p class="text-white text-sm mt-0.5">Partial match. Review requirements carefully.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Match Reasons Card -->
+<div class="bg-white rounded-2xl p-5 border border-forest-50 shadow-sm mb-4">
+    <h3 class="font-semibold text-forest-800 mb-3">Why You Match</h3>
+    <ul class="space-y-2 text-sm text-slate2-600">
+        {% for reason in recommendation.get_match_reasons_list %}
+        <li class="flex items-start gap-2">
+            {% if "✓" in reason %}
+            <span class="text-green-500 mt-0.5">✓</span>
+            {% elif "~" in reason %}
+            <span class="text-yellow-500 mt-0.5">~</span>
+            {% else %}
+            <span class="text-green-500 mt-0.5">•</span>
+            {% endif %}
+            {{ reason|slice:"2:" }}
+        </li>
+        {% empty %}
+        <li class="flex items-start gap-2">
+            <span class="text-green-500 mt-0.5">✓</span>
+            Profile matches scholarship criteria
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Details Grid -->
+<div class="space-y-4">
+    <!-- Requirements -->
+    <div class="bg-white rounded-2xl p-5 border border-forest-50 shadow-sm">
+        <h3 class="font-semibold text-forest-800 mb-3">Requirements</h3>
+        <ul class="space-y-2 text-sm text-slate2-600">
+            {% for req in scholarship.get_requirements_list %}
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">•</span> {{ req }}</li>
+            {% empty %}
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">•</span> Good academic standing (GWA 2.0 or better)</li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">•</span> Filipino citizen enrolled in college</li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">•</span> Must demonstrate financial need</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Benefits -->
+    <div class="bg-white rounded-2xl p-5 border border-forest-50 shadow-sm">
+        <h3 class="font-semibold text-forest-800 mb-3">Benefits</h3>
+        <ul class="space-y-2 text-sm text-slate2-600">
+            {% for benefit in scholarship.get_benefits_list %}
+            <li class="flex items-start gap-2"><span class="text-forest-500 mt-0.5">•</span> {{ benefit }}</li>
+            {% empty %}
+            {% if scholarship.description %}
+            <li class="flex items-start gap-2"><span class="text-forest-500 mt-0.5">•</span> {{ scholarship.description }}</li>
+            {% else %}
+            <li class="flex items-start gap-2"><span class="text-forest-500 mt-0.5">•</span> Full or partial tuition coverage</li>
+            <li class="flex items-start gap-2"><span class="text-forest-500 mt-0.5">•</span> Monthly stipend/allowance</li>
+            <li class="flex items-start gap-2"><span class="text-forest-500 mt-0.5">•</span> Book and supplies allowance</li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Application Period -->
+    <div class="bg-white rounded-2xl p-5 border border-forest-50 shadow-sm">
+        <h3 class="font-semibold text-forest-800 mb-3">Application Period</h3>
+        {% if scholarship.application_period %}
+        <p class="text-sm text-slate2-600">{{ scholarship.application_period }}</p>
+        {% else %}
+        <p class="text-sm text-slate2-600">Applications are typically accepted during enrollment periods. Please check the official website for current application windows.</p>
+        {% endif %}
+    </div>
+
+    <!-- How to Apply -->
+    <div class="bg-white rounded-2xl p-5 border border-forest-50 shadow-sm">
+        <h3 class="font-semibold text-forest-800 mb-3">How to Apply</h3>
+        <ol class="space-y-3 text-sm text-slate2-600">
+            {% for step in scholarship.get_application_steps_list %}
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-semibold flex items-center justify-center">{{ forloop.counter }}</span>
+                {{ step }}
+            </li>
+            {% empty %}
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-semibold flex items-center justify-center">1</span>
+                Visit the official scholarship provider's website
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-semibold flex items-center justify-center">2</span>
+                Look for the scholarship application section or portal
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-semibold flex items-center justify-center">3</span>
+                Create an account or register as a new applicant
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-semibold flex items-center justify-center">4</span>
+                Fill out the online application form with accurate personal and academic information
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-semibold flex items-center justify-center">5</span>
+                Upload required documents: birth certificate, grades/transcript, income certificate
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-semibold flex items-center justify-center">6</span>
+                Submit your application before the deadline
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-semibold flex items-center justify-center">7</span>
+                Wait for email notification regarding your application status
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-semibold flex items-center justify-center">8</span>
+                If shortlisted, prepare for and attend the interview (if required)
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-forest-100 text-forest-700 text-xs font-semibold flex items-center justify-center">9</span>
+                Receive the final decision and follow instructions for scholarship acceptance
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+
+    <!-- Security Note -->
+    <div class="bg-yellow-50 rounded-2xl p-5 border border-yellow-200 shadow-sm">
+        <h3 class="font-semibold text-yellow-800 mb-3">Security Note</h3>
+        <p class="text-sm text-yellow-700">
+            Always verify the official website before submitting applications. Never share sensitive personal information through unofficial channels or emails. Legitimate scholarship programs do not ask for payment or fees.
+        </p>
+    </div>
+</div>
+
+<!-- Apply Button -->
+{% if scholarship.website %}
+<a href="{{ scholarship.website }}" target="_blank" rel="noopener noreferrer"
+   class="btn-primary block w-full mt-6 py-4 rounded-2xl text-white font-semibold text-base text-center" 
+   style="background: linear-gradient(135deg, #1e4522, #3d8f3e);">
+    Apply Now →
+</a>
+{% else %}
+<button class="btn-primary w-full mt-6 py-4 rounded-2xl text-white font-semibold text-base" 
+        style="background: linear-gradient(135deg, #1e4522, #3d8f3e);"
+        onclick="alert('Please search for the official website of {{ scholarship.name }} to apply.')">
+    Apply Now →
+</button>
+{% endif %}
+
+<!-- Back to Results -->
+<a href="{% url 'scholarships:results' profile.pk %}" 
+   class="block w-full mt-3 py-3 rounded-xl text-center bg-forest-100 text-forest-700 font-semibold hover:bg-forest-200 transition">
+    Back to All Recommendations
+</a>
+{% endblock %}

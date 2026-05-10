@@ -3,101 +3,125 @@
 {% block title %}Scholarship Recommendations{% endblock %}
 
 {% block content %}
-<div class="bg-white shadow-lg rounded-2xl p-8 mb-6">
-    <h2 class="text-2xl font-bold text-gray-800 mb-1">Your Scholarship Recommendations</h2>
-    <p class="text-sm text-gray-500 mb-8">
-        Results for <strong>{{ profile.first_name }} {{ profile.last_name }}</strong>
-        &mdash; submitted {{ profile.created_at|date:"F j, Y g:i A" }}
-    </p>
-
-    <div class="space-y-6">
-        {% for rec in recommendations %}
-        <div class="relative border-2 rounded-2xl p-6 transition-shadow hover:shadow-md
-            {% if rec.rank == 1 %}border-yellow-400 bg-gradient-to-r from-yellow-50 to-white{% elif rec.rank == 2 %}border-gray-300 bg-gradient-to-r from-gray-50 to-white{% else %}border-orange-300 bg-gradient-to-r from-orange-50 to-white{% endif %}">
-
-            <!-- Rank badge -->
-            <div class="absolute -top-4 left-6">
-                <span class="inline-flex items-center gap-1 px-4 py-1.5 rounded-full text-white font-bold text-sm shadow
-                    {% if rec.rank == 1 %}bg-yellow-500{% elif rec.rank == 2 %}bg-gray-400{% else %}bg-orange-400{% endif %}">
-                    {% if rec.rank == 1 %}
-                        &#9733; 1st Pick
-                    {% elif rec.rank == 2 %}
-                        &#9734; 2nd Pick
-                    {% else %}
-                        &#9734; 3rd Pick
-                    {% endif %}
-                </span>
-            </div>
-
-            <div class="mt-2 flex items-start justify-between gap-4">
-                <div class="flex-1">
-                    <h3 class="text-xl font-bold text-gray-800 mb-1">{{ rec.scholarship.name }}</h3>
-                    {% if rec.scholarship.description %}
-                    <p class="text-sm text-gray-500 mb-3">{{ rec.scholarship.description }}</p>
-                    {% endif %}
-                </div>
-                <div class="text-right flex-shrink-0">
-                    <span class="text-3xl font-extrabold
-                        {% if rec.rank == 1 %}text-yellow-600{% elif rec.rank == 2 %}text-gray-600{% else %}text-orange-600{% endif %}">
-                        {{ rec.confidence_score|floatformat:1 }}%
-                    </span>
-                    <p class="text-xs text-gray-400">confidence</p>
-                </div>
-            </div>
-
-            <!-- Confidence bar -->
-            <div class="w-full bg-gray-200 rounded-full h-3 mt-3">
-                <div class="h-3 rounded-full transition-all duration-500
-                    {% if rec.rank == 1 %}bg-yellow-500{% elif rec.rank == 2 %}bg-gray-400{% else %}bg-orange-400{% endif %}"
-                     style="width: {{ rec.confidence_score|floatformat:0 }}%"></div>
-            </div>
-
-            {% if rec.scholarship.eligibility_notes %}
-            <p class="text-xs text-gray-500 mt-3 italic">{{ rec.scholarship.eligibility_notes }}</p>
-            {% endif %}
-        </div>
-        {% endfor %}
+<!-- Header -->
+<div class="text-center mb-10">
+    <div class="flex items-center justify-center gap-3 mb-3">
+        <div class="h-0.5 w-16 rounded" style="background: linear-gradient(to right, transparent, #5fa860);"></div>
+        <h1 class="font-display text-4xl font-extrabold text-forest-800">Recommended Scholarships</h1>
+        <div class="h-0.5 w-16 rounded" style="background: linear-gradient(to left, transparent, #5fa860);"></div>
     </div>
+    <p class="text-slate2-500 text-sm">Based on the information you provided, these scholarships suit your profile.</p>
+    <p class="text-forest-600 text-sm mt-2 font-semibold">Results for {{ profile.first_name }} {{ profile.last_name }}</p>
+</div>
+
+<!-- Scholarship Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    {% for rec in recommendations %}
+    <div class="scholarship-card rounded-2xl overflow-hidden shadow-md border border-forest-100 transition-all hover:shadow-xl hover:-translate-y-1">
+        <!-- Card Header with Match Score -->
+        <div class="p-5 text-center" style="background: linear-gradient(135deg, #245828, #3d8f3e);">
+            <h3 class="font-display text-lg text-white font-bold mb-3 min-h-[3.5rem] flex items-center justify-center">{{ rec.scholarship.name }}</h3>
+            <div class="inline-flex flex-col items-center justify-center">
+                <!-- SVG Circle for Match Score -->
+                {% with score=rec.confidence_score|floatformat:0 %}
+                <svg width="80" height="80" class="mb-1">
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="6"/>
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round"
+                        stroke-dasharray="213" stroke-dashoffset="{% widthratio 100|add:'-'|add:score 100 213 %}" 
+                        transform="rotate(-90 40 40)"
+                        style="stroke-dashoffset: calc(213 - (213 * {{ score }} / 100));"/>
+                    <text x="40" y="45" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="DM Sans">{{ rec.confidence_score|floatformat:0 }}%</text>
+                </svg>
+                {% endwith %}
+                <span class="text-yellow-300 text-xs font-semibold tracking-wide">MATCH SCORE</span>
+            </div>
+        </div>
+        
+        <!-- Card Body -->
+        <div class="bg-white p-5">
+            <!-- Match Reasons -->
+            <p class="text-xs font-semibold text-forest-700 mb-2">Why you match:</p>
+            <ul class="space-y-1.5 mb-4">
+                {% for reason in rec.get_match_reasons_list %}
+                    {% with parts=reason|slice:":1" status=reason|slice:"2:" %}
+                    <li class="flex items-start gap-1.5 text-xs text-slate2-600">
+                        {% if "✓" in reason %}
+                        <span class="text-green-500 mt-0.5">✓</span>
+                        {% elif "~" in reason %}
+                        <span class="text-yellow-500 mt-0.5">~</span>
+                        {% else %}
+                        <span class="text-green-500 mt-0.5">•</span>
+                        {% endif %}
+                        {{ reason|slice:"2:" }}
+                    </li>
+                    {% endwith %}
+                {% empty %}
+                    <li class="flex items-start gap-1.5 text-xs text-slate2-600">
+                        <span class="text-green-500 mt-0.5">✓</span>
+                        Profile matches scholarship criteria
+                    </li>
+                {% endfor %}
+            </ul>
+            
+            <!-- Eligibility Info -->
+            <div class="text-xs text-slate2-500 mb-4 space-y-1 border-t border-forest-50 pt-3">
+                {% if rec.scholarship.eligibility_notes %}
+                <p><span class="font-semibold">Eligibility:</span> {{ rec.scholarship.eligibility_notes|truncatewords:15 }}</p>
+                {% endif %}
+                {% if rec.scholarship.description %}
+                <p><span class="font-semibold">Benefit:</span> {{ rec.scholarship.description|truncatewords:10 }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- View Details Button -->
+            <a href="{% url 'scholarships:scholarship_detail' profile.pk rec.pk %}" 
+               class="btn-primary block w-full py-2.5 rounded-xl text-white text-xs font-semibold text-center" 
+               style="background: linear-gradient(135deg, #245828, #3d8f3e);">
+                View Details
+            </a>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 
 <!-- Student Profile Summary -->
-<div class="bg-white shadow-lg rounded-2xl p-8 mb-6">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">Your Profile Summary</h3>
+<div class="bg-white rounded-2xl p-8 shadow-sm border border-forest-50 mb-8">
+    <h3 class="font-display text-lg font-bold text-forest-800 mb-5 pb-3 border-b border-forest-50">Your Profile Summary</h3>
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
         <div>
-            <span class="text-gray-500">Course:</span>
-            <p class="font-medium">{{ profile.course }}</p>
+            <span class="text-slate2-500">Course:</span>
+            <p class="font-medium text-forest-700">{{ profile.course }}</p>
         </div>
         <div>
-            <span class="text-gray-500">Category:</span>
-            <p class="font-medium">{{ profile.course_category }}</p>
+            <span class="text-slate2-500">Category:</span>
+            <p class="font-medium text-forest-700">{{ profile.course_category }}</p>
         </div>
         <div>
-            <span class="text-gray-500">GWA:</span>
-            <p class="font-medium">{{ profile.gwa_numeric_1to5|floatformat:2 }}</p>
+            <span class="text-slate2-500">GWA (Percentage):</span>
+            <p class="font-medium text-forest-700">{% if profile.gwa_percentage %}{{ profile.gwa_percentage|floatformat:1 }}%{% else %}{{ profile.gwa_numeric_1to5|floatformat:2 }} (1-5 scale){% endif %}</p>
         </div>
         <div>
-            <span class="text-gray-500">Year Level:</span>
-            <p class="font-medium">{{ profile.get_year_level_display }}</p>
+            <span class="text-slate2-500">Year Level:</span>
+            <p class="font-medium text-forest-700">{{ profile.get_year_level_display }}</p>
         </div>
         <div>
-            <span class="text-gray-500">Family Income:</span>
-            <p class="font-medium">{{ profile.get_income_range_display }}</p>
+            <span class="text-slate2-500">Family Income:</span>
+            <p class="font-medium text-forest-700">{{ profile.get_income_range_display }}</p>
         </div>
         <div>
-            <span class="text-gray-500">Parents' Occupation:</span>
-            <p class="font-medium">{{ profile.parents_occupation }}</p>
+            <span class="text-slate2-500">Parents' Occupation:</span>
+            <p class="font-medium text-forest-700">{{ profile.parents_occupation }}</p>
         </div>
     </div>
 </div>
 
 <div class="flex gap-4">
     <a href="{% url 'scholarships:student_form' %}"
-       class="flex-1 text-center bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+       class="btn-primary flex-1 text-center py-3.5 rounded-xl text-white font-semibold" style="background: linear-gradient(135deg, #1e4522, #3d8f3e);">
         Submit Another Application
     </a>
     <a href="{% url 'scholarships:history' %}"
-       class="flex-1 text-center bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300">
+       class="flex-1 text-center bg-forest-100 text-forest-700 py-3.5 rounded-xl font-semibold hover:bg-forest-200 transition">
         View History
     </a>
 </div>

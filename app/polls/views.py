@@ -1,3 +1,7 @@
+from pathlib import Path
+
+from django.conf import settings
+from django.http import FileResponse, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -51,4 +55,12 @@ def signup_submit(request):
 
 def logout_view(request):
     logout(request)
+    request.session.flush()  # Clear session data completely
     return redirect('home')
+
+
+def logo_srs(request):
+    logo_path = Path(settings.BASE_DIR) / "scholarships" / "templates" / "scholarships" / "logo SRS.svg"
+    if not logo_path.exists():
+        raise Http404("Logo file not found.")
+    return FileResponse(logo_path.open("rb"), content_type="image/svg+xml")

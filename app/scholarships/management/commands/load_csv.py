@@ -53,7 +53,7 @@ class Command(BaseCommand):
         self.stdout.write(f'Loaded {len(df)} rows from {csv_path}')
 
         created = 0
-        for _, row in df.iterrows():
+        for row_idx, (_, row) in enumerate(df.iterrows(), start=1):
             try:
                 gwa_pct = pd.to_numeric(row.get('gwa_percentage'), errors='coerce')
                 gwa_num = pd.to_numeric(row.get('gwa_numeric_1to5'), errors='coerce')
@@ -99,6 +99,6 @@ class Command(BaseCommand):
                 )
                 created += 1
             except Exception as e:
-                self.stderr.write(f'Row {_} skipped: {e}')
+                self.stderr.write(f'Row {row_idx} skipped: {e}')
 
         self.stdout.write(self.style.SUCCESS(f'Created {created} student profiles.'))

@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path("", views.index, name="index"),
     path("home/", views.index, name="home"),
+    path("assets/logo-srs.svg", views.logo_srs, name="logo_srs"),
     path("signup/", views.signup, name="signup"),
     path("login_submit/", views.login_submit, name="login_submit"),
     path("signup_submit/", views.signup_submit, name="signup_submit"),
