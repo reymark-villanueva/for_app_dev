@@ -9,3 +9,4 @@ demo/
 *.ipynb
 *.csv
 nul
+scholarships/pkl/model_rf.pkl

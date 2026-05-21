@@ -24,6 +24,26 @@ ENSEMBLE_WEIGHTS = {
     'cnb': 0.10,
 }
 
+REQUIRED_PKL_FILES = {
+    'preprocessor': 'preprocessor.pkl',
+    'tfidf': 'tfidf_vectorizer.pkl',
+    'mm_scaler': 'mm_scaler.pkl',
+    'class_labels': 'class_labels.pkl',
+}
+
+MODEL_PKL_FILES = {
+    'rf': 'model_rf.pkl',
+    'gb': 'model_gb.pkl',
+    'svm_rbf': 'model_svm_rbf.pkl',
+    'svm_lin': 'model_svm_lin.pkl',
+    'gnb': 'model_gnb.pkl',
+    'cnb': 'model_cnb.pkl',
+}
+
+OPTIONAL_PKL_FILES = {
+    'content_profiles': 'content_profiles.pkl',
+}
+
 
 def load_models():
     """Load all pkl artifacts into memory. Thread-safe, idempotent."""
@@ -34,21 +54,7 @@ def load_models():
         if _is_loaded:
             return
 
-        pkl_files = {
-            'rf': 'model_rf.pkl',
-            'gb': 'model_gb.pkl',
-            'svm_rbf': 'model_svm_rbf.pkl',
-            'svm_lin': 'model_svm_lin.pkl',
-            'gnb': 'model_gnb.pkl',
-            'cnb': 'model_cnb.pkl',
-            'preprocessor': 'preprocessor.pkl',
-            'tfidf': 'tfidf_vectorizer.pkl',
-            'mm_scaler': 'mm_scaler.pkl',
-            'content_profiles': 'content_profiles.pkl',
-            'class_labels': 'class_labels.pkl',
-        }
-
-        for key, filename in pkl_files.items():
+        for key, filename in REQUIRED_PKL_FILES.items():
             path = PKL_DIR / filename
             if not path.exists():
                 raise FileNotFoundError(
@@ -58,6 +64,25 @@ def load_models():
                 )
             _models[key] = joblib.load(path)
             logger.info("Loaded %s from %s", key, path)
+
+        loaded_weighted_model = False
+        for key, filename in MODEL_PKL_FILES.items():
+            path = PKL_DIR / filename
+            if not path.exists():
+                logger.warning("Optional model file not found: %s", path)
+                continue
+            _models[key] = joblib.load(path)
+            loaded_weighted_model = loaded_weighted_model or key in ENSEMBLE_WEIGHTS
+            logger.info("Loaded %s from %s", key, path)
+
+        if not loaded_weighted_model:
+            raise FileNotFoundError(f"No inference model files found in {PKL_DIR}")
+
+        for key, filename in OPTIONAL_PKL_FILES.items():
+            path = PKL_DIR / filename
+            if path.exists():
+                _models[key] = joblib.load(path)
+                logger.info("Loaded %s from %s", key, path)
 
         _is_loaded = True
         logger.info("All ML models loaded successfully.")
@@ -104,28 +129,37 @@ def recommend_scholarship(student_dict, top_n=3):
     X_tfidf = _models['tfidf'].transform([text_profile]).toarray()
     X_comb = np.hstack([X_num, X_tfidf])
 
-    # 5. Get aligned probabilities from all 5 models
+    # 5. Get aligned probabilities from available models
     classes_ = _models['class_labels']
+    weighted_probs = []
+    active_weight = 0.0
 
-    p_rf = features.align_proba(
-        _models['rf'].predict_proba(X_comb), _models['rf'].classes_, classes_)
-    p_gb = features.align_proba(
-        _models['gb'].predict_proba(X_comb), _models['gb'].classes_, classes_)
-    p_svm = features.align_proba(
-        _models['svm_rbf'].predict_proba(X_comb), _models['svm_rbf'].classes_, classes_)
-    p_gnb = features.align_proba(
-        _models['gnb'].predict_proba(X_mm), _models['gnb'].classes_, classes_)
-    p_cnb = features.align_proba(
-        _models['cnb'].predict_proba(X_tfidf), _models['cnb'].classes_, classes_)
+    model_inputs = {
+        'rf': X_comb,
+        'gb': X_comb,
+        'svm_rbf': X_comb,
+        'gnb': X_mm,
+        'cnb': X_tfidf,
+    }
 
-    # 6. Weighted ensemble
-    ens_prob = (
-        ENSEMBLE_WEIGHTS['rf'] * p_rf +
-        ENSEMBLE_WEIGHTS['gb'] * p_gb +
-        ENSEMBLE_WEIGHTS['svm_rbf'] * p_svm +
-        ENSEMBLE_WEIGHTS['gnb'] * p_gnb +
-        ENSEMBLE_WEIGHTS['cnb'] * p_cnb
-    )
+    for key, model_input in model_inputs.items():
+        model = _models.get(key)
+        if model is None:
+            continue
+        weight = ENSEMBLE_WEIGHTS[key]
+        proba = features.align_proba(
+            model.predict_proba(model_input),
+            model.classes_,
+            classes_,
+        )
+        weighted_probs.append(weight * proba)
+        active_weight += weight
+
+    if not weighted_probs or active_weight == 0:
+        raise RuntimeError("No loaded inference models are available.")
+
+    # 6. Weighted ensemble, renormalized when optional models are excluded.
+    ens_prob = sum(weighted_probs) / active_weight
 
     top_idx = ens_prob[0].argsort()[::-1][:top_n]
 
