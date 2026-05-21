@@ -83,7 +83,10 @@
                 <a href="{% url 'scholarships:student_form' %}" class="nav-link text-green-300 font-medium text-sm">Apply</a>
                 <a href="{% url 'scholarships:history' %}" class="nav-link text-green-300 font-medium text-sm">History</a>
                 <span class="text-green-200 text-sm">{{ request.user.username }}</span>
-                <a href="{% url 'logout' %}" class="text-red-300 hover:text-red-200 transition font-medium text-sm">Logout</a>
+                <form action="{% url 'logout' %}" method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="text-red-300 hover:text-red-200 transition font-medium text-sm">Logout</button>
+                </form>
             </div>
         </div>
     </nav>

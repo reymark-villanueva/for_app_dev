@@ -10,7 +10,25 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import importlib.util
+import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
+
+
+def env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def env_list(name, default=None):
+    value = os.environ.get(name)
+    if not value:
+        return list(default or [])
+    return [item.strip() for item in value.split(',') if item.strip()]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,13 +37,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-6$#n&fs8sg@=wr^t#g)wn+u%-=iq!aqub7*-zs%2egls!u2$5b'
+IS_VERCEL = env_bool('VERCEL')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Local development stays easy, but Vercel/production must provide real secrets.
+DEBUG = env_bool('DJANGO_DEBUG', default=not IS_VERCEL)
 
-ALLOWED_HOSTS = []
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured('Set DJANGO_SECRET_KEY in the deployment environment.')
+    SECRET_KEY = 'local-development-only-change-me-9a930e4b9de3474c9a0a0ed926c8c84f'
+
+ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS')
+vercel_url = os.environ.get('VERCEL_URL')
+if vercel_url:
+    ALLOWED_HOSTS.append(vercel_url)
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]'] if DEBUG else ['.vercel.app']
+
+CSRF_TRUSTED_ORIGINS = env_list('DJANGO_CSRF_TRUSTED_ORIGINS')
+if vercel_url:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{vercel_url}')
 
 
 # Application definition
@@ -51,7 +83,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+if importlib.util.find_spec('whitenoise') is not None:
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
 ROOT_URLCONF = 'mysite.urls'
+ADMIN_URL = os.environ.get('DJANGO_ADMIN_URL', 'admin/')
 
 TEMPLATES = [
     {
@@ -74,12 +110,28 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.environ.get('DATABASE_URL'):
+    try:
+        import dj_database_url
+    except ImportError as exc:
+        raise ImproperlyConfigured(
+            'DATABASE_URL is set, but dj-database-url is not installed.'
+        ) from exc
+
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=not DEBUG,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -116,7 +168,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -127,4 +180,25 @@ LOGOUT_REDIRECT_URL = 'home'
 # Clear session on browser close (don't persist)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-PRELOAD_ML_MODELS = False
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = env_bool('DJANGO_SECURE_SSL_REDIRECT', default=not DEBUG)
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', 31536000 if not DEBUG else 0))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool(
+    'DJANGO_HSTS_INCLUDE_SUBDOMAINS',
+    default=not DEBUG,
+)
+SECURE_HSTS_PRELOAD = env_bool('DJANGO_HSTS_PRELOAD', default=not DEBUG)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'same-origin'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+X_FRAME_OPTIONS = 'DENY'
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get('DJANGO_DATA_UPLOAD_MAX_MEMORY_SIZE', 1048576))
+FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get('DJANGO_FILE_UPLOAD_MAX_MEMORY_SIZE', 1048576))
+DATA_UPLOAD_MAX_NUMBER_FIELDS = int(os.environ.get('DJANGO_DATA_UPLOAD_MAX_NUMBER_FIELDS', 1000))
+
+PRELOAD_ML_MODELS = env_bool('PRELOAD_ML_MODELS', default=False)

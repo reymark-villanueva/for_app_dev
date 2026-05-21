@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .forms import StudentProfileForm
 from .models import StudentProfile, Scholarship, Recommendation
 from .ml.engine import recommend_scholarship
+from mysite.rate_limit import is_rate_limited
 
 
 logger = logging.getLogger(__name__)
@@ -209,6 +210,10 @@ def generate_match_reasons(profile, scholarship_name, confidence):
 def student_form_view(request):
     if request.method == 'POST':
         form = StudentProfileForm(request.POST)
+        if is_rate_limited(request, 'recommendation-submit', 20, 3600, request.user.pk):
+            messages.error(request, 'Too many recommendation requests. Please try again later.')
+            return render(request, 'scholarships/student_form.html', {'form': form}, status=429)
+
         if form.is_valid():
             cd = form.cleaned_data
             try:

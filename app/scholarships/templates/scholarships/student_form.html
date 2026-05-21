@@ -13,6 +13,14 @@
     <p class="text-slate2-500 text-sm">Fill in your details to receive personalized scholarship recommendations.</p>
 </div>
 
+{% if messages %}
+<div class="bg-red-50 border border-red-200 rounded-2xl p-5 mb-8">
+    {% for message in messages %}
+    <p class="text-red-700 font-semibold text-sm">{{ message }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
 {% if form.errors %}
 <div class="bg-red-50 border border-red-200 rounded-2xl p-5 mb-8">
     <p class="text-red-700 font-semibold text-sm">Please correct the errors below:</p>
