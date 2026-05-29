@@ -52,6 +52,8 @@ ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS')
 vercel_url = os.environ.get('VERCEL_URL')
 if vercel_url:
     ALLOWED_HOSTS.append(vercel_url)
+if IS_VERCEL and '.vercel.app' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('.vercel.app')
 if not ALLOWED_HOSTS:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]'] if DEBUG else ['.vercel.app']
 

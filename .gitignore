@@ -9,6 +9,7 @@ env/
 .env
 .env.*
 !.env.example
+.vercel/
 
 *.sqlite3
 db.sqlite3

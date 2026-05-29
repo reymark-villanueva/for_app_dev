@@ -1,5 +1,6 @@
 __pycache__/
 *.py[cod]
+.vercel/
 *.sqlite3
 db.sqlite3
 app/db.sqlite3
@@ -10,3 +11,4 @@ app/demo/
 *.ipynb
 *.csv
 nul
+app/scholarships/pkl/model_rf.pkl
