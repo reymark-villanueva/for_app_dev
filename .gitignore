@@ -16,6 +16,8 @@ db.sqlite3
 app/db.sqlite3
 
 staticfiles/
+!app/staticfiles/
+!app/staticfiles/.gitkeep
 media/
 outputs/
 *.log

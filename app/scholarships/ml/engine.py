@@ -1,6 +1,9 @@
+import os
 import threading
 import logging
 from pathlib import Path
+
+os.environ.setdefault('JOBLIB_MULTIPROCESSING', '0')
 
 import joblib
 import numpy as np

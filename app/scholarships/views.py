@@ -7,7 +7,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from .forms import StudentProfileForm
 from .models import StudentProfile, Scholarship, Recommendation
-from .ml.engine import recommend_scholarship
 from mysite.rate_limit import is_rate_limited
 
 
@@ -242,6 +241,8 @@ def student_form_view(request):
                     )
 
                     student_dict = form.to_student_dict()
+                    from .ml.engine import recommend_scholarship
+
                     results = recommend_scholarship(student_dict, top_n=3)
 
                     for rec in results:
