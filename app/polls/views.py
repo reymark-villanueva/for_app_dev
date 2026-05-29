@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
-from django.http import FileResponse, Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -95,4 +95,4 @@ def logo_srs(request):
     logo_path = Path(settings.BASE_DIR) / "scholarships" / "templates" / "scholarships" / "logo SRS.svg"
     if not logo_path.exists():
         raise Http404("Logo file not found.")
-    return FileResponse(logo_path.open("rb"), content_type="image/svg+xml")
+    return HttpResponse(logo_path.read_bytes(), content_type="image/svg+xml")
