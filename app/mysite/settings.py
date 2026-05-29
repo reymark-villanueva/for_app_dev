@@ -30,6 +30,19 @@ def env_list(name, default=None):
         return list(default or [])
     return [item.strip() for item in value.split(',') if item.strip()]
 
+
+def env_database_url():
+    names = ('DATABASE_URL', 'POSTGRES_URL', 'POSTGRES_PRISMA_URL')
+    for name in names:
+        value = os.environ.get(name)
+        if value:
+            return value
+    for name in names:
+        for key in sorted(os.environ):
+            if key.endswith(f'_{name}') and os.environ[key]:
+                return os.environ[key]
+    return None
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -114,11 +127,7 @@ ASGI_APPLICATION = 'mysite.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASE_URL = (
-    os.environ.get('DATABASE_URL')
-    or os.environ.get('POSTGRES_URL')
-    or os.environ.get('POSTGRES_PRISMA_URL')
-)
+DATABASE_URL = env_database_url()
 
 if DATABASE_URL:
     try:
