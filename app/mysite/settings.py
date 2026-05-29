@@ -114,16 +114,23 @@ ASGI_APPLICATION = 'mysite.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-if os.environ.get('DATABASE_URL'):
+DATABASE_URL = (
+    os.environ.get('DATABASE_URL')
+    or os.environ.get('POSTGRES_URL')
+    or os.environ.get('POSTGRES_PRISMA_URL')
+)
+
+if DATABASE_URL:
     try:
         import dj_database_url
     except ImportError as exc:
         raise ImproperlyConfigured(
-            'DATABASE_URL is set, but dj-database-url is not installed.'
+            'A Postgres database URL is set, but dj-database-url is not installed.'
         ) from exc
 
     DATABASES = {
         'default': dj_database_url.config(
+            default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
             ssl_require=not DEBUG,
